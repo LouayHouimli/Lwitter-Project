@@ -24,6 +24,9 @@ const notificationSchema = new mongoose.Schema({
     },
     message: {
         type: String
+    },  
+    content: {
+        type: String
     }
 
 

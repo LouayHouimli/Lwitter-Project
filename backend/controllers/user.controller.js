@@ -79,7 +79,10 @@ export const getSuggestedUsers = async (req, res) => {
     
         const suggestedUsers = filtredUsers.slice(0, 4);
 
-        suggestedUsers.forEach(user => user.password = null);
+        suggestedUsers.forEach(user => {
+            user.password = null,
+            user.email = null
+        });
         res.status(200).json(suggestedUsers);
 
 
