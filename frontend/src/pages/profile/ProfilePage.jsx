@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
-
+import { useQuery } from "@tanstack/react-query";
 import { POSTS } from "../../utils/db/dummy";
 
 import { FaArrowLeft } from "react-icons/fa6";
@@ -14,6 +14,7 @@ import { MdEdit } from "react-icons/md";
 import { MdVerified } from "react-icons/md";
 
 const ProfilePage = () => {
+
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");

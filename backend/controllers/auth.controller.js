@@ -5,18 +5,22 @@ import { generateTokenAndSetCookie } from '../lib/utils/generateToken.js';
 export const signup = async (req, res) => {
     try {
         const { fullname, username, email, password } = req.body;
-        const emailRegex = /\S+@\S+\.\S+/;
+        if (!fullname || !username || !email || !password) {
+            return res.status(400).json({ message: "Please provide all required fields" });
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ message: "Invalid email address" });
         }
         const existingUser = await User.findOne({ username });
-        if (existingUser) {
-            return res.status(400).json({ message: "Username already exists" });
-        }
-        const existingEmail = await User.findOne({ email });
+         const existingEmail = await User.findOne({ email });
         if (existingEmail) {
             return res.status(400).json({ message: "Email already exists" });
         }
+        if (existingUser) {
+            return res.status(400).json({ message: "Username already exists" });
+        }
+        
         if(password.length < 6) {
             return res.status(400).json({ message: "Password must be at least 6 characters" });
         }
@@ -61,7 +65,7 @@ export const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if(!isMatch) {
-        return res.status(401).json({message: "Invalid credentials"});
+        return res.status(401).json({message: "Username or password is incorrect"});
     }
 
     generateTokenAndSetCookie(user._id, res);
