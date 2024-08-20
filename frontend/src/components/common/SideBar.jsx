@@ -76,7 +76,7 @@ const Sidebar = () => {
             className="mt-auto mb-10 mr-3 flex gap-2 items-lef transition-all duration-300 hover:bg-primary py-2 px-4 rounded-full"
           >
             <div className="avatar hidden md:inline-flex">
-              <div className="w-8 rounded-full">
+              <div className="w-10 rounded-full border-solid border-2 border-primary">
                 <img src={data?.profileImg || "/avatar-placeholder.png"} />
               </div>
             </div>
