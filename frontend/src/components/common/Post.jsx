@@ -65,7 +65,7 @@ const Post = ({ post }) => {
         <div className="avatar">
           <Link
             to={`/profile/${postOwner.username}`}
-            className="w-8 rounded-full overflow-hidden"
+            className="w-9 h-9 rounded-full overflow-hidden"
           >
             <img src={postOwner.profileImg || "/avatar-placeholder.png"} />
           </Link>
@@ -84,10 +84,12 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                {!isPending && <FaTrash
-                  className="cursor-pointer hover:text-red-500"
-                  onClick={handleDeletePost}
-                />}
+                {!isPending && (
+                  <FaTrash
+                    className="cursor-pointer hover:text-red-500"
+                    onClick={handleDeletePost}
+                  />
+                )}
                 {isPending && <LoadingSpinner size="sm" />}
               </span>
             )}
