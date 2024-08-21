@@ -205,10 +205,10 @@ export const getAllPosts = async (req, res) => {
     try {  
         const posts = await Post.find().sort({ createdAt: -1 }).populate({
             path: "user",
-            select: "fullname username profileImg",
+            select: "-password",
         }).populate({
             path: "comments.user",
-            select: "fullname username profileImg",
+            select: "-password",
         });
         res.status(200).json(posts);
         if (posts.length === 0) {
@@ -217,7 +217,7 @@ export const getAllPosts = async (req, res) => {
     }
     catch (error) {
         console.log("error in getAllPosts from post.controller.js", error.message);
-        res.status(500).json({ error: error.message });
+       
     }
 
 }
@@ -267,7 +267,7 @@ export const getFollowingPosts = async (req, res) => {
             select: "fullname username profileImg",
         })
         if (posts.length === 0) {
-            return res.status(404).json([]);
+            return res.status(200).json([]);
         }
         res.status(200).json(posts);
         

@@ -2,23 +2,29 @@ import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import Axios from "axios";
+import toast from "react-hot-toast";
 
 const CreatePost = () => {
   const [text, setText] = useState("");
-  const [img, setImg] = useState(null);
+    const [img, setImg] = useState(null);
+    const queryClient = useQueryClient();
 
   const imgRef = useRef(null);
-
-  const isPending = false;
+    const isPending = false;    
   const isError = false;
+    const { data } = useQuery({ queryKey: ["authUser"] });
+  
 
-  const data = {
-    profileImg: "/avatars/boy1.png",
-  };
+        
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Post created successfully");
+      e.preventDefault();
+      createPost();
+      setText("");
+      setImg(null);
+    
   };
 
   const handleImgChange = (e) => {
@@ -35,7 +41,7 @@ const CreatePost = () => {
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
-        <div className="w-8 rounded-full border-solid border-2 border-primary">
+        <div className="w-8 rounded-full border-solid border-2 border-black">
           <img src={data.profileImg || "/avatar-placeholder.png"} />
         </div>
       </div>

@@ -17,7 +17,8 @@ const ProfilePage = () => {
 
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
-  const [feedType, setFeedType] = useState("posts");
+    const [feedType, setFeedType] = useState("posts");
+    const { data: user } = useQuery({ queryKey: ["authUser"] });
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
@@ -25,17 +26,7 @@ const ProfilePage = () => {
   const isLoading = false;
   const isMyProfile = true;
 
-  const user = {
-    _id: "1",
-    fullName: "Louay Houimli",
-    username: "louayishere",
-    profileImg: "/avatars/boy2.png",
-    coverImg: "/cover.png",
-    bio: "<Being A Developer Is A Pride 😎/>",
-    link: "https://youtube.com/@asaprogrammer_",
-    following: ["1", "2", "3"],
-    followers: ["1", "2", "3"],
-  };
+  
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];

@@ -5,25 +5,56 @@ import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
+  const queryClient = useQueryClient();
   const postOwner = post.user;
-  const isLiked = false;
 
   const isMyPost = true;
 
   const formattedDate = "1h";
 
   const isCommenting = false;
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const isLiked = post.likes.includes(authUser._id);
 
-  const handleDeletePost = () => {};
+  const handleDeletePost = async () => {
+    try {
+      const res = await fetch(`/api/posts/delete-post/${post._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.error) {
+        toast.error(data.message, { id: "delete-post" });
+      } else {
+        toast.success(data.message, { id: "delete-post" });
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handlePostComment = (e) => {
     e.preventDefault();
   };
 
-  const handleLikePost = () => {};
+  const handleLikePost = async () => {
+    try {
+      const res = await fetch(`/api/posts/like/${post._id}`, {
+        method: "POST",
+      });
+        const data = res.json();
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+        
+        
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -39,7 +70,7 @@ const Post = ({ post }) => {
         <div className="flex flex-col flex-1">
           <div className="flex gap-2 items-center">
             <Link to={`/profile/${postOwner.username}`} className="font-bold">
-              {postOwner.fullName}
+              {postOwner.fullname}
             </Link>
             <span className="text-gray-700 flex gap-1 text-sm">
               <Link to={`/profile/${postOwner.username}`}>
@@ -50,10 +81,12 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                <FaTrash
-                  className="cursor-pointer hover:text-red-500"
-                  onClick={handleDeletePost}
-                />
+                {postOwner._id === authUser._id && (
+                  <FaTrash
+                    className="cursor-pointer hover:text-red-500"
+                    onClick={handleDeletePost}
+                  />
+                )}
               </span>
             )}
           </div>

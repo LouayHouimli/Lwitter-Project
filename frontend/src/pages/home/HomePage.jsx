@@ -2,9 +2,11 @@ import { useState } from "react";
 
 import Posts from "../../components/common/Posts";
 import CreatePost from "./CreatePost";
+import { useQueryClient } from "@tanstack/react-query";
 
 const HomePage = () => {
   const [feedType, setFeedType] = useState("forYou");
+  const queryClient = useQueryClient();
 
   return (
     <>
@@ -13,9 +15,12 @@ const HomePage = () => {
         <div className="flex w-full border-b border-gray-700">
           <div
             className={
-              "flex justify-center flex-1 p-3  cursor-pointer relative"
+              "flex justify-center flex-1 p-3  cursor-pointer relative select-none"
             }
             onClick={() => setFeedType("forYou")}
+            onDoubleClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["posts"] })
+            }
           >
             For you
             {feedType === "forYou" && (
@@ -23,8 +28,11 @@ const HomePage = () => {
             )}
           </div>
           <div
-            className="flex justify-center flex-1 p-3 cursor-pointer relative"
+            className="flex justify-center flex-1 p-3 cursor-pointer relative select-none"
             onClick={() => setFeedType("following")}
+            onDoubleClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["posts"] })
+            }
           >
             Following
             {feedType === "following" && (
@@ -37,7 +45,7 @@ const HomePage = () => {
         <CreatePost />
 
         {/* POSTS */}
-        <Posts />
+        <Posts feedType={feedType} />
       </div>
     </>
   );
