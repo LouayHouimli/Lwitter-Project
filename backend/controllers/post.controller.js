@@ -30,7 +30,6 @@ export const createPost = async (req, res) => {
         });
            
         await newPost.save();
-        console.log(img,text)
         res.status(201).json(newPost);
         
 
@@ -202,26 +201,31 @@ export const deleteComment = async (req, res) => {
 
 }
 export const getAllPosts = async (req, res) => {
+    try {
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .populate({
+                path: "user",
+                select: "-password",
+            })
+            .populate({
+                path: "comments.user",
+                select: "-password",
+            });
 
-    try {  
-        const posts = await Post.find().sort({ createdAt: -1 }).populate({
-            path: "user",
-            select: "-password",
-        }).populate({
-            path: "comments.user",
-            select: "-password",
-        });
-        res.status(200).json(posts);
+        // If no posts are found, send an empty array
         if (posts.length === 0) {
             return res.status(200).json([]);
         }
-    }
-    catch (error) {
-        console.log("error in getAllPosts from post.controller.js", error.message);
-       
-    }
 
-}
+        // Send the posts
+        res.status(200).json(posts);
+
+    } catch (error) {
+        console.log("error in getAllPosts from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
 export const getLikedPosts = async (req, res) => { 
     const userId = req.user._id;
     try {
@@ -294,7 +298,7 @@ export const getUserPosts = async (req, res) => {
             select: "fullname username profileImg",
         })
         if (posts === null) {
-            return res.status(404).json([]);
+            return res.status(200).json([]);
         }
         res.status(200).send(posts);
         
