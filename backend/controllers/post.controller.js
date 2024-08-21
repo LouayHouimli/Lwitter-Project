@@ -25,11 +25,12 @@ export const createPost = async (req, res) => {
 
         const newPost = new Post({
             user: userId,
-            text,
-            img 
+            text : text ,
+            img : img ,
         });
            
         await newPost.save();
+        console.log(img,text)
         res.status(201).json(newPost);
         
 
@@ -267,7 +268,7 @@ export const getFollowingPosts = async (req, res) => {
             select: "fullname username profileImg",
         })
         if (posts.length === 0) {
-            return res.status(200).json([]);
+            return res.status(404).json([]);
         }
         res.status(200).json(posts);
         

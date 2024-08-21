@@ -2,29 +2,57 @@ import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import Axios from "axios";
 import toast from "react-hot-toast";
 
 const CreatePost = () => {
   const [text, setText] = useState("");
-    const [img, setImg] = useState(null);
-    const queryClient = useQueryClient();
+  const [img, setImg] = useState(null);
+  const queryClient = useQueryClient();
 
   const imgRef = useRef(null);
-    const isPending = false;    
-  const isError = false;
-    const { data } = useQuery({ queryKey: ["authUser"] });
-  
 
-        
+  const { data } = useQuery({ queryKey: ["authUser"] });
+
+  const {
+    mutate: createPostMutation,
+    isPending,
+    isError,
+  } = useMutation({
+    mutationFn: async ({ text, img }) => {
+      try {
+        const res = await fetch("/api/posts/create-post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text, img }),
+        });
+
+        const data = await res.json();
+        if (data.error) {
+          toast.error(data.message, { id: "create-post" });
+        } else {
+          toast.success("Post created successfully", { id: "create-post" });
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+  });
 
   const handleSubmit = (e) => {
-      e.preventDefault();
-      createPost();
-      setText("");
-      setImg(null);
-    
+    e.preventDefault();
+    if (!text && !img) {
+      toast.error("Please provide text or image", { id: "create-post" });
+      return;
+    }
+
+    createPostMutation({ text, img });
+    setText("");
+    setImg(null);
   };
 
   const handleImgChange = (e) => {
@@ -76,7 +104,13 @@ const CreatePost = () => {
             />
             <BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
           </div>
-          <input type="file" hidden ref={imgRef} onChange={handleImgChange} />
+          <input
+            type="file"
+            hidden
+            ref={imgRef}
+            onChange={handleImgChange}
+            accept="image/*"
+          />
           <button className="btn btn-primary rounded-full btn-sm text-black px-4">
             {isPending ? "Posting..." : "Post"}
           </button>

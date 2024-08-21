@@ -14,7 +14,7 @@ import { MdEdit } from "react-icons/md";
 import { MdVerified } from "react-icons/md";
 
 const ProfilePage = () => {
-
+  
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
     const [feedType, setFeedType] = useState("posts");

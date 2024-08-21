@@ -6,36 +6,41 @@ import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+
+import Axios from "axios";
+import LoadingSpinner from "./LoadingSpinner";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
   const postOwner = post.user;
-
-  const isMyPost = true;
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const isMyPost = authUser._id === postOwner._id;
 
   const formattedDate = "1h";
 
   const isCommenting = false;
-  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
   const isLiked = post.likes.includes(authUser._id);
 
+  const { mutate: deletePostMutation, isPending } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await Axios.delete(`/api/posts/delete-post/${post._id}`);
+        const data = res.data;
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          toast.success("Post deleted successfully");
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+        }
+      } catch (error) {}
+    },
+  });
+
   const handleDeletePost = async () => {
-    try {
-      const res = await fetch(`/api/posts/delete-post/${post._id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.error) {
-        toast.error(data.message, { id: "delete-post" });
-      } else {
-        toast.success(data.message, { id: "delete-post" });
-        queryClient.invalidateQueries({ queryKey: ["posts"] });
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    deletePostMutation();
   };
 
   const handlePostComment = (e) => {
@@ -47,10 +52,8 @@ const Post = ({ post }) => {
       const res = await fetch(`/api/posts/like/${post._id}`, {
         method: "POST",
       });
-        const data = res.json();
-        queryClient.invalidateQueries({ queryKey: ["posts"] });
-        
-        
+      const data = res.json();
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     } catch (error) {
       console.log(error);
     }
@@ -81,12 +84,11 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                {postOwner._id === authUser._id && (
-                  <FaTrash
-                    className="cursor-pointer hover:text-red-500"
-                    onClick={handleDeletePost}
-                  />
-                )}
+                {!isPending && <FaTrash
+                  className="cursor-pointer hover:text-red-500"
+                  onClick={handleDeletePost}
+                />}
+                {isPending && <LoadingSpinner size="sm" />}
               </span>
             )}
           </div>

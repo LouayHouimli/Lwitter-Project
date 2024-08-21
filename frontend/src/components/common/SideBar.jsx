@@ -74,6 +74,7 @@ const Sidebar = () => {
 
           <li className="flex justify-center md:justify-start">
             <Link
+              onDoubleClick={() => queryClient.invalidateQueries({ queryKey: ["posts"] })}
               to={`/profile/${data?.username}`}
               className="flex gap-3 items-center hover:bg-primary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
@@ -117,10 +118,13 @@ const Sidebar = () => {
                 </p>
                 <p className="text-black text-sm">@{data?.username}</p>
               </div>
-              <BiLogOut className="w-5 h-5 cursor-pointer" onClick={(e) => {
-                e.preventDefault();
-                logout();
-              }} />
+              <BiLogOut
+                className="w-5 h-5 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  logout();
+                }}
+              />
             </div>
           </Link>
         )}
