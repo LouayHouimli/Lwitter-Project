@@ -6,6 +6,7 @@ import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { MdVerified } from "react-icons/md";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 
 import Axios from "axios";
@@ -24,7 +25,7 @@ const Post = ({ post }) => {
 
   const isLiked = post.likes.includes(authUser._id);
 
-  const { mutate: deletePostMutation, isPending } = useMutation({
+  const { mutate: deletePostMutation, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
       try {
         const res = await Axios.delete(`/api/posts/delete-post/${post._id}`);
@@ -39,6 +40,36 @@ const Post = ({ post }) => {
     },
   });
 
+  const { mutate: likePost, isPending: isLiking } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/like/${post._id}`, {
+          method: "POST",
+        });
+        const data = res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+        return data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    onSuccess: (updatedLikes) => {
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, likes: updatedLikes };
+          }
+          return p;
+        });
+      });
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  });
+
   const handleDeletePost = async () => {
     deletePostMutation();
   };
@@ -48,15 +79,8 @@ const Post = ({ post }) => {
   };
 
   const handleLikePost = async () => {
-    try {
-      const res = await fetch(`/api/posts/like/${post._id}`, {
-        method: "POST",
-      });
-      const data = res.json();
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    } catch (error) {
-      console.log(error);
-    }
+    if (isLiking) return;
+    likePost();
   };
 
   return (
@@ -71,26 +95,35 @@ const Post = ({ post }) => {
           </Link>
         </div>
         <div className="flex flex-col flex-1">
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center ">
             <Link to={`/profile/${postOwner.username}`} className="font-bold">
-              {postOwner.fullname}
+              <p className="flex justify-center items-center flex-row gap-1 leading-none">
+                {postOwner.fullname}
+                {postOwner?.isVerified && (
+                  <MdVerified
+                    className="text-gray-700 flex-shrink-0 text-base align-middle mb-[-3px]"
+                    aria-label="verified"
+                    title="Verified Member"
+                  />
+                )}
+              </p>
             </Link>
-            <span className="text-gray-700 flex gap-1 text-sm">
+            <span className="text-gray-700 flex gap-1 text-sm mb-[-3px]">
               <Link to={`/profile/${postOwner.username}`}>
                 @{postOwner.username}
               </Link>
-              <span>·</span>
+              <span className="mb-[-3px]">·</span>
               <span>{formattedDate}</span>
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                {!isPending && (
+                {!isDeleting && (
                   <FaTrash
                     className="cursor-pointer hover:text-red-500"
                     onClick={handleDeletePost}
                   />
                 )}
-                {isPending && <LoadingSpinner size="sm" />}
+                {isDeleting && <LoadingSpinner size="sm" />}
               </span>
             )}
           </div>
@@ -99,7 +132,7 @@ const Post = ({ post }) => {
             {post.img && (
               <img
                 src={post.img}
-                className="h-80 object-contain rounded-lg border border-gray-700"
+                className="h-80 object-contain rounded-lg border border-gray-700 "
                 alt=""
               />
             )}
@@ -169,11 +202,7 @@ const Post = ({ post }) => {
                       onChange={(e) => setComment(e.target.value)}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
-                      {isCommenting ? (
-                        <span className="loading loading-spinner loading-md"></span>
-                      ) : (
-                        "Post"
-                      )}
+                      {isCommenting ? <LoadingSpinner size="md" /> : "Post"}
                     </button>
                   </form>
                 </div>
@@ -192,14 +221,14 @@ const Post = ({ post }) => {
                 onClick={handleLikePost}
               >
                 {!isLiked && (
-                  <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500" />
+                  <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500 select-none" />
                 )}
                 {isLiked && (
-                  <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500 " />
+                  <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500 select-none " />
                 )}
 
                 <span
-                  className={`text-sm text-slate-500 group-hover:text-pink-500 ${
+                  className={`text-sm text-slate-500 group-hover:text-pink-500 select-none ${
                     isLiked ? "text-pink-500" : ""
                   }`}
                 >

@@ -8,6 +8,7 @@ const postSchema = new mongoose.Schema({
     },
     text: {
         type: String,
+        
     },
     img : {
         type: String
@@ -35,6 +36,10 @@ const postSchema = new mongoose.Schema({
 
         },
     ],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
 
         
 

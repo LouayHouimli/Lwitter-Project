@@ -9,17 +9,22 @@ import { BiLogOut } from "react-icons/bi";
 import { FaBookmark } from "react-icons/fa6";
 import { FaMessage } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient,useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { mutate:logout, isPending, isError, error } = useMutation({
+
+  const {
+    mutate: logout,
+    isPending,
+    isError,
+    error,
+  } = useMutation({
     mutationFn: async () => {
-      try { 
+      try {
         const res = await fetch("/api/auth/logout", {
           method: "POST",
-
         });
         const data = await res.json();
         if (data.error) {
@@ -27,23 +32,15 @@ const Sidebar = () => {
         } else {
           queryClient.invalidateQueries({ queryKey: ["authUser"] });
         }
-
-
-
-      }
-      catch (error) {
+      } catch (error) {
         console.log(error);
-        
-
       }
-       
-     }
-   })
+    },
+  });
 
+  const { data } = useQuery({ queryKey: ["authUser"] });
+  
 
-
-
-  const { data } = useQuery({ queryKey: ["authUser"] })
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-52">
@@ -74,7 +71,9 @@ const Sidebar = () => {
 
           <li className="flex justify-center md:justify-start">
             <Link
-              onDoubleClick={() => queryClient.invalidateQueries({ queryKey: ["posts"] })}
+              onDoubleClick={() =>
+                queryClient.invalidateQueries({ queryKey: ["posts"] })
+              }
               to={`/profile/${data?.username}`}
               className="flex gap-3 items-center hover:bg-primary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >

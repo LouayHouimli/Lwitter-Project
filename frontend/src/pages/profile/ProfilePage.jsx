@@ -57,7 +57,7 @@ const ProfilePage = () => {
                   <FaArrowLeft className="w-4 h-4" />
                 </Link>
                 <div className="flex flex-col">
-                  <p className="font-bold text-lg">{user?.fullName}</p>
+                  <p className="font-bold text-lg">{user?.fullname}</p>
                   <span className="text-sm text-slate-500">
                     {POSTS?.length} posts
                   </span>
@@ -138,11 +138,14 @@ const ProfilePage = () => {
                 <div className="flex flex-col">
                   <span className="font-bold text-lg">
                     <p className="flex items-center gap-2">
-                      {user?.fullName}{" "}
-                      {/* <MdVerified
-                        className="text-blue-500 mt-0.55"
-                        aria-label="verified"
-                      /> */}
+                      {user?.fullname}{" "}
+                      {user?.isVerified && (
+                        <MdVerified
+                          className="text-gray-700 mt-0.5"
+                          aria-label="verified"
+                          title="Verified Member"
+                        />
+                      )}
                     </p>
                   </span>
                   <span className="text-sm text-slate-500">

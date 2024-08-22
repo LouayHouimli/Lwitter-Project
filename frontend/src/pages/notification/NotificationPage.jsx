@@ -1,55 +1,69 @@
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa";
 import { FaRetweet } from "react-icons/fa";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 
 const NotificationPage = () => {
-  const isLoading = false;
-  const notifications = [
-    {
-      _id: "1",
-      from: {
-        _id: "1",
-        username: "johndoe",
-        profileImg: "/avatars/boy2.png",
-      },
-      type: "follow",
+  const {
+    data: notifications,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/notifications", {
+          method: "GET",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        return null;
+      }
     },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "like",
+  });
+
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteAllNotification, isPending } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch("/api/notifications/deleteAll", {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+        if (data.message) {
+          toast.error(data.message, { id: "deleteAllNotification" });
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "comment",
-    },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "repost",
-    },
-  ];
+  });
 
   const deleteNotifications = () => {
-    alert("All notifications deleted");
+    if (notifications?.length > 0) {
+      deleteAllNotification();
+    } else {
+      toast.error("No notifications to delete", {
+        id: "deleteAllNotification",
+      });
+      return;
+    }
   };
 
   return (
@@ -71,11 +85,12 @@ const NotificationPage = () => {
             </ul>
           </div>
         </div>
-        {isLoading && (
-          <div className="flex justify-center h-full items-center">
-            <LoadingSpinner size="lg" />
-          </div>
-        )}
+        {isLoading ||
+          (isPending && (
+            <div className="flex justify-center h-full items-center">
+              <LoadingSpinner size="lg" />
+            </div>
+          ))}
         {notifications?.length === 0 && (
           <div className="text-center p-4 font-bold">No notifications 🤔</div>
         )}
@@ -94,12 +109,12 @@ const NotificationPage = () => {
               {notification.type === "repost" && (
                 <FaRetweet className="w-7 h-7 text-primary" />
               )}
-              <Link to={`/profile/${notification.from.username}`}>
+              <Link to={`/profile/${notification.sender.username}`}>
                 <div className="avatar">
                   <div className="w-8 rounded-full">
                     <img
                       src={
-                        notification.from.profileImg ||
+                        notification.sender.profileImg ||
                         "/avatar-placeholder.png"
                       }
                     />
@@ -107,7 +122,7 @@ const NotificationPage = () => {
                 </div>
                 <div className="flex gap-1">
                   <span className="font-bold">
-                    @{notification.from.username}
+                    @{notification.sender.username}
                   </span>{" "}
                   {notification.type === "follow"
                     ? "followed you"

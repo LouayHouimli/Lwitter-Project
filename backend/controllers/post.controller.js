@@ -91,32 +91,35 @@ export const likeUnlikePost = async (req, res) => {
 
         if (post.likes.includes(userId)) {
             await post.updateOne({ $pull: { likes: userId } });
-            await user.updateOne({ $pull: { likedPosts: postId } });
-            res.status(200).json({ message: "Post unliked successfully" });
+             await user.updateOne({ $pull: { likedPosts: postId } });
+            const updatedLikes = post.likes.filter((like) => like != userId);
             await Notification.deleteMany({ sender: userId, receiver: post.user, type: "like" });
-        } else {
+    return res.status(200).json(updatedLikes);
+} else {
             await post.updateOne({ $push: { likes: userId } });
-            await user.updateOne({ $push: { likedPosts: postId } });
-            if (user._id.toString() !== post.user.toString()) {
-            const newNotification = new Notification({
+              await user.updateOne({ $push: { likedPosts: postId } });
+            post.likes.push(userId);
+             if (user._id.toString() !== post.user.toString()) {
+                 const newNotification = new Notification({
                 receiver: post.user,
                 sender: userId,
                 type: "like",
                 message: `${user.username} liked your post`
-            })
-                
-                await newNotification.save();
-                 }
-            res.status(200).json({ message: "Post liked successfully" });   
+                 })
+                   await newNotification.save();
+            }
+            return res.status(200).json(post.likes); // Make sure this is an array
             
+            
+}
 
-
-        }
+        
          }
         catch (error) {
             console.log("error in likeUnlikePost from post.controller.js", error.message);
             res.status(500).json({ error: error.message });
-        }
+    }
+    
 }  
 export const commentOnPost = async (req, res) => {
     const postId = req.params.id;

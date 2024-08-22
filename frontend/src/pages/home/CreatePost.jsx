@@ -50,7 +50,8 @@ const CreatePost = () => {
       return;
     }
 
-    createPostMutation({ text, img });
+      createPostMutation({ text, img });
+      console.log(img)
     setText("");
     setImg(null);
   };
