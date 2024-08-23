@@ -3,26 +3,24 @@ import { BiRepost } from "react-icons/bi";
 import { FaRegHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { MdVerified } from "react-icons/md";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-
 import Axios from "axios";
 import LoadingSpinner from "./LoadingSpinner";
+import formatPostDate from "../../utils/formatPostDate";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
+  const containerRef = useRef(null);
   const queryClient = useQueryClient();
   const postOwner = post.user;
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const isMyPost = authUser._id === postOwner._id;
 
-  const formattedDate = "1h";
-
-  const isCommenting = false;
-
+  const formattedDate = formatPostDate(post.createdAt);
   const isLiked = post.likes.includes(authUser._id);
 
   const { mutate: deletePostMutation, isPending: isDeleting } = useMutation({
@@ -70,18 +68,76 @@ const Post = ({ post }) => {
     },
   });
 
+  const { mutate: commentPost, isPending: isCommenting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: comment }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+        setComment("");
+        return data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    onSuccess: (updatedComments) => {
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              comments: [
+                ...p.comments.filter(
+                  (comment) =>
+                    !updatedComments.find(
+                      (newComment) => newComment._id === comment._id
+                    )
+                ),
+                ...updatedComments,
+              ],
+            };
+          }
+          return p;
+        });
+      });
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  });
+
   const handleDeletePost = async () => {
     deletePostMutation();
   };
 
   const handlePostComment = (e) => {
     e.preventDefault();
+    if (comment === "") {
+      toast.error("Please provide a comment");
+      return;
+    }
+    if (isCommenting) return;
+    commentPost();
   };
 
   const handleLikePost = async () => {
     if (isLiking) return;
     likePost();
   };
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [post.comments]); 
 
   return (
     <>
@@ -152,14 +208,17 @@ const Post = ({ post }) => {
                   {post.comments.length}
                 </span>
               </div>
-              {/* We're using Modal Component from DaisyUI */}
+
               <dialog
                 id={`comments_modal${post._id}`}
-                className="modal border-none outline-none"
+                className="modal border-none outline-none "
               >
-                <div className="modal-box rounded border border-gray-600">
+                <div className="modal-box rounded border border-gray-600 ">
                   <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
-                  <div className="flex flex-col gap-3 max-h-60 overflow-auto">
+                  <div
+                    ref={containerRef}
+                    className="flex flex-col gap-3 max-h-60 overflow-auto p-2 border border-gray-300"
+                  >
                     {post.comments.length === 0 && (
                       <p className="text-sm text-slate-500">
                         No comments yet 🤔 Be the first one 😉
@@ -192,14 +251,16 @@ const Post = ({ post }) => {
                     ))}
                   </div>
                   <form
-                    className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2"
+                    className="flex gap-2 items-center mt-4 border-t border-gray-600 pt-2 "
                     onSubmit={handlePostComment}
                   >
                     <textarea
-                      className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800"
+                      className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none border-gray-800 "
                       placeholder="Add a comment..."
                       value={comment}
-                      onChange={(e) => setComment(e.target.value)}
+                      onChange={(e) => {
+                        setComment(e.target.value);
+                      }}
                     />
                     <button className="btn btn-primary rounded-full btn-sm text-white px-4">
                       {isCommenting ? <LoadingSpinner size="md" /> : "Post"}
@@ -245,4 +306,5 @@ const Post = ({ post }) => {
     </>
   );
 };
+
 export default Post;

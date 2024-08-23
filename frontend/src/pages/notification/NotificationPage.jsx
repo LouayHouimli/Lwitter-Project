@@ -65,6 +65,24 @@ const NotificationPage = () => {
       return;
     }
   };
+  const getNotificationMessage = (type) => {
+    switch (type) {
+      case "follow":
+        return "followed you";
+      case "like":
+        return "liked your post";
+      case "comment":
+        return "commented on your post";
+      case "mention":
+        return "mentioned you in a post";
+      default:
+        return "sent you a notification";
+    }
+  };
+
+  // Usage in component
+  
+
 
   return (
     <>
@@ -120,14 +138,16 @@ const NotificationPage = () => {
                     />
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 ">
                   <span className="font-bold">
                     @{notification.sender.username}
                   </span>{" "}
-                  {notification.type === "follow"
-                    ? "followed you"
-                    : "liked your post"}
+                  <span className="font-bold ">
+                    {" "}
+                    {getNotificationMessage(notification.type)}{" "}
+                  </span>
                 </div>
+                <div className="font-bold flex ">{notification?.content ? "Comment : " +  notification.content : "" }</div>
               </Link>
             </div>
           </div>

@@ -122,49 +122,52 @@ export const likeUnlikePost = async (req, res) => {
     
 }  
 export const commentOnPost = async (req, res) => {
-    const postId = req.params.id;
-    const userId = req.user._id.toString();
-    const { text } = req.body;
-    try {
-        const post = await Post.findById(postId);
-        const user = await User.findById(userId);
+  const postId = req.params.id;
+  const userId = req.user._id.toString();
+  const { text } = req.body;
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
+  try {
+    const post = await Post.findById(postId);
+    const user = await User.findById(userId);
 
-        const newComment = {
-            text,
-            user: userId
-        }
-
-        await post.updateOne({ $push: { comments: newComment } });
-        if (post.user.toString() !== userId) {
-            const newNotification = new Notification({
-            receiver: post.user,
-            sender: userId,
-            type: "comment",
-            message: `${user.username} commented your post`,
-            content: `${text}`
-            })
-            await newNotification.save();
-        }
-        
-        
-        res.status(200).json({ message: "Comment created successfully" });
-
-
-        
-
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    catch (error) {
-        console.log("error in commentOnPost from post.controller.js", error.message);
-        res.status(500).json({ error: error.message });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
-}  
+
+    const newComment = {
+      text,
+      user: userId,
+    };
+
+    await post.updateOne({ $push: { comments: newComment } });
+    post.comments.push(newComment);
+
+    if (post.user.toString() !== userId) {
+      const newNotification = new Notification({
+        receiver: post.user,
+        sender: userId,
+        type: "comment",
+        message: `${user.username} commented on your post`,
+        content: `${text}`,
+      });
+      await newNotification.save();
+    }
+
+   
+    const updatedPost = await Post.findById(postId).populate({
+      path: 'comments.user',
+      select: 'username profileImg', 
+    });
+
+    return res.status(200).json(updatedPost.comments);
+  } catch (error) {
+    console.log("error in commentOnPost from post.controller.js", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
 export const deleteComment = async (req, res) => {
     const postId = req.params.postId;
     const commentId = req.params.commentId;
@@ -230,36 +233,36 @@ export const getAllPosts = async (req, res) => {
     }
 };
 export const getLikedPosts = async (req, res) => { 
-    const userId = req.user._id;
+    const userId = req.params.id;
     try {
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const posts = await Post.find({ likes: { $in: [userId] } }).sort({ createdAt: -1 }).populate({
-            path: "user",
-            select: "fullname username profileImg",
-        }).populate({
-            path: "comments.user",
-            select: "fullname username profileImg",
-        })
+
+        const posts = await Post.find({ likes: { $in: [userId] } })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: "user",
+                select: "fullname username profileImg",
+            })
+            .populate({
+                path: "comments.user",
+                select: "fullname username profileImg",
+            });
 
         if (posts.length === 0) {
-            return res.status(404).json([]);
+            return res.status(200).json([]);
         }
 
         res.status(200).json(posts);
 
-        
-
-    }
-    catch (error) {
-        console.log("error in getLikedPosts from post.controller.js", error.message);
+    } catch (error) {
+        console.log("Error in getLikedPosts from post.controller.js:", error.message);
         res.status(500).json({ error: error.message });
     }
+};
 
-
-}
 export const getFollowingPosts = async (req, res) => {
     const userId = req.user._id;
     try {
@@ -293,7 +296,7 @@ export const getUserPosts = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const posts = await Post.findOne({ user: user._id }).sort({ createdAt: -1 }).populate({
+        const posts = await Post.find({ user: user._id }).sort({ createdAt: -1 }).populate({
             path: "user",
             select: "fullname username profileImg",
         }).populate({

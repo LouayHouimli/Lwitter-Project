@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
 function App() {
+  
   const {
     data: authUser,
     isLoading,
@@ -75,7 +76,7 @@ function App() {
           element={!authUser ? <Navigate to="/login" /> : <ProfilePage />}
         />
         <Route
-          path="/profile/:user"
+          path="/profile/:username"
           element={!authUser ? <Navigate to="/login" /> : <ProfilePage />}
         />
       </Routes>
