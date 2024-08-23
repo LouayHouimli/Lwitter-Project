@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery,useMutation,useQueryClient } from "@tanstack/react-query";
 import { POSTS } from "../../utils/db/dummy";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
@@ -13,16 +13,20 @@ import { MdVerified } from "react-icons/md";
 import formatMembershipDate from "../../utils/formatMemberSinceDate";
 import useFollow from "../../components/hooks/useFollow";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import toast from "react-hot-toast";
+
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
+  const queryClient = useQueryClient();
   // const { data: user } = useQuery({ queryKey: ["authUser"] });
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const { data: POSTS } = useQuery({ queryKey: ["posts"] });
   const { username } = useParams();
   const { follow ,isPending } = useFollow();
 
@@ -49,6 +53,50 @@ const ProfilePage = () => {
   const memberSince = formatMembershipDate(user?.createdAt);
   const isMyProfile = authUser?._id === user?._id;
 
+  const { mutate: updateProfile ,isPending:isUpdatingProfile ,isSuccess,reset} = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/users/update`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            profileImg,
+            coverImg,
+          }),
+        })
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+        if (data.message) {
+          toast.success(data.message);
+          Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+            queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+          ]);
+          
+          
+            
+        }
+        
+
+        return data;
+      }
+      catch (error) {
+        console.log(error)
+        
+      }
+                            
+    },
+   
+  })
+
+
+
+
+
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
     if (file) {
@@ -59,11 +107,13 @@ const ProfilePage = () => {
           : setProfileImg(reader.result);
       };
       reader.readAsDataURL(file);
+      reset();
     }
   };
   useEffect(() => {
+    document.title = `Profile - ${user?.fullname}`;
     refetch();
-  }, [username, refetch]);
+  }, [username, refetch,user]);
 
   return (
     <>
@@ -152,33 +202,37 @@ const ProfilePage = () => {
                       : "Follow"}
                   </button>
                 )}
-                {(coverImg || profileImg) && (
+                {(coverImg || profileImg) && !isSuccess && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert("Profile updated successfully")}
+                    onClick={() => {
+                      updateProfile();
+                    }}
                   >
-                    Update
+                    {isUpdatingProfile ? "Updating" : "Save"}
                   </button>
                 )}
               </div>
 
               <div className="flex flex-col gap-4 mt-14 px-4">
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg">
-                    <p className="flex items-center gap-2">
-                      {user?.fullname}{" "}
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-lg flex items-center">
+                      <span className="mt-0.5">{user?.fullname}</span>
+
                       {user?.isVerified && (
                         <MdVerified
-                          className="text-gray-700 mt-0.5"
+                          className="text-primary ml-1 align-middle" // Ensure alignment
                           aria-label="verified"
                           title="Verified Member"
                         />
                       )}
-                    </p>
-                  </span>
+                    </span>
+                  </div>
                   <span className="text-sm text-slate-500">
                     @{user?.username}
                   </span>
+
                   <span className="text-sm my-1">{user?.bio}</span>
                 </div>
 
@@ -188,12 +242,12 @@ const ProfilePage = () => {
                       <>
                         <FaLink className="w-3 h-3 text-slate-500" />
                         <a
-                          href="https://louayhouimli.vercel.app"
+                          href={`https://${user?.link}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-sm text-blue-500 hover:underline"
                         >
-                          louayhouimli.vercel.app
+                          {user?.link}
                         </a>
                       </>
                     </div>

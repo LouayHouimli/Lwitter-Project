@@ -9,30 +9,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 
 const NotificationPage = () => {
-  const {
-    data: notifications,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: async () => {
-      try {
-        const res = await fetch("/api/notifications", {
-          method: "GET",
-        });
-        if (!res.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const data = await res.json();
-        return data;
-      } catch (error) {
-        return null;
-      }
-    },
-  });
-
+  
+  document.title = "Notifications / L";
   const queryClient = useQueryClient();
+  const { data: notifications ,isLoading } = useQuery({ queryKey: ["notifications"] });
 
   const { mutate: deleteAllNotification, isPending } = useMutation({
     mutationFn: async () => {

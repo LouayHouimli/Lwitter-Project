@@ -157,7 +157,7 @@ const Post = ({ post }) => {
                 {postOwner.fullname}
                 {postOwner?.isVerified && (
                   <MdVerified
-                    className="text-gray-700 flex-shrink-0 text-base align-middle mb-[-3px]"
+                    className="text-primary flex-shrink-0 text-base align-middle "
                     aria-label="verified"
                     title="Verified Member"
                   />

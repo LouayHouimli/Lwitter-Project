@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const EditProfileModal = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
+    fullname: "",
     username: "",
     email: "",
     bio: "",
@@ -11,9 +14,79 @@ const EditProfileModal = () => {
     currentPassword: "",
   });
 
+  const queryClient = useQueryClient();
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const navigate = useNavigate();
+
+  const {
+    mutate: updateProfile,
+    isPending: isUpdatingProfile,
+    isSuccess,
+    reset,
+  } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/users/update`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+        if (data.message) {
+          toast.success(data.message);
+          return data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  });
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (authUser) {
+      setFormData({
+        fullname: authUser.fullname,
+        username: authUser.username,
+        email: authUser.email,
+        bio: authUser.bio,
+        link: authUser.link,
+        newPassword: "",
+        currentPassword: "",
+      });
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      // Update the cached authUser data with the new username
+      queryClient.setQueryData(["authUser"], (oldData) => ({
+        ...oldData,
+        username: formData.username,
+        
+      }));
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+
+     
+      queryClient.setQueryDefaults(["userProfile", formData.username], {
+        queryFn: () =>
+          fetch(`/api/users/profile/${formData.username}`).then((res) =>
+            res.json()
+          ),
+      });
+
+      
+      navigate(`/profile/${formData.username}`);
+    }
+  }, [isSuccess, formData.username, queryClient, navigate]);
 
   return (
     <>
@@ -32,7 +105,7 @@ const EditProfileModal = () => {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              alert("Profile updated successfully");
+              updateProfile();
             }}
           >
             <div className="flex flex-wrap gap-2">
@@ -40,8 +113,8 @@ const EditProfileModal = () => {
                 type="text"
                 placeholder="Full Name"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
-                value={formData.fullName}
-                name="fullName"
+                value={formData.fullname}
+                name="fullname"
                 onChange={handleInputChange}
               />
               <input
@@ -97,7 +170,7 @@ const EditProfileModal = () => {
               onChange={handleInputChange}
             />
             <button className="btn btn-primary rounded-full btn-sm text-white">
-              Update
+              {isUpdatingProfile ? "Updating..." : "Update"}
             </button>
           </form>
         </div>
@@ -108,4 +181,5 @@ const EditProfileModal = () => {
     </>
   );
 };
+
 export default EditProfileModal;

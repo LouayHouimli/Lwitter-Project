@@ -9,7 +9,10 @@ import { BiLogOut } from "react-icons/bi";
 import { FaBookmark } from "react-icons/fa6";
 import { FaMessage } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { MdDarkMode } from "react-icons/md";
+import { IoSettingsSharp } from "react-icons/io5";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import {useEffect, useState} from "react";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -39,15 +42,27 @@ const Sidebar = () => {
   });
 
   const { data } = useQuery({ queryKey: ["authUser"] });
-  
-
+  const { data: notifications } = useQuery({ queryKey: ["notifications"] });
+  console.log(notifications?.length);
+  const [theme, setTheme] = useState("retro");
+  const toggleTheme = () => {
+    setTheme(theme === "coffee" ? "retro" : "coffee");
+  };
+  // initially set the theme and "listen" for changes to apply them to the HTML tag
+  useEffect(() => {
+    document.querySelector("html").setAttribute("data-theme", theme);
+  }, [theme]);
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-52">
       <div className="sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full">
-        <Link to="/" className="flex justify-center md:justify-start">
-          <XSvg className="px-2 w-12 h-12 rounded-full fill-black " />
-        </Link>
+        <div className="flex flex-row gap-1">
+          <Link to="/" className="flex justify-center md:justify-start">
+            <XSvg className="px-2 w-12 h-12 rounded-full fill-black " />
+          </Link>
+          <button onClick={toggleTheme}>Theme</button>
+        </div>
+
         <ul className="flex flex-col gap-3 mt-4">
           <li className="flex justify-center md:justify-start">
             <Link
@@ -64,7 +79,13 @@ const Sidebar = () => {
               to="/notifications"
               className="flex gap-3 items-center hover:bg-primary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
             >
-              <IoNotifications className="w-7 h-7" />
+              <div className="indicator">
+                {notifications?.length > 0 &&  <span className="indicator-item badge badge-primary rounded-full w-6">
+                  {notifications?.length >9 ? "9+" : notifications?.length} 
+                </span>}
+                <IoNotifications className="w-7 h-7" />
+              </div>
+
               <span className="text-lg hidden md:block">Notifications</span>
             </Link>
           </li>
@@ -99,6 +120,15 @@ const Sidebar = () => {
               <span className="text-lg hidden md:block">Messages</span>
             </Link>
           </li>
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="/settings"
+              className="flex gap-3 items-center hover:bg-primary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <IoSettingsSharp className="w-7 h-7" />
+              <span className="text-lg hidden md:block">Settings</span>
+            </Link>
+          </li>
         </ul>
         {data && (
           <Link
@@ -106,16 +136,16 @@ const Sidebar = () => {
             className="mt-auto mb-10 mr-3 flex gap-2 items-lef transition-all duration-300 hover:bg-primary py-2 px-4 rounded-full"
           >
             <div className="avatar hidden md:inline-flex">
-              <div className="w-10 rounded-full border-solid border-2 border-black">
+              <div className="w-10 rounded-full border-solid border-2 border-primary">
                 <img src={data?.profileImg || "/avatar-placeholder.png"} />
               </div>
             </div>
             <div className="flex justify-between flex-1">
               <div className="hidden md:block">
-                <p className="text-black font-bold text-sm w-20 truncate">
+                <p className="text-primary font-bold text-sm w-20 truncate">
                   {data?.fullname}
                 </p>
-                <p className="text-black text-sm">@{data?.username}</p>
+                <p className="text-gray-500 text-sm">@{data?.username}</p>
               </div>
               <BiLogOut
                 className="w-5 h-5 cursor-pointer"

@@ -11,10 +11,14 @@ export default {
   daisyui: {
     themes: [
       "light",
-      "retro", // Include the retro theme from DaisyUI
+      "retro", 
+      "black",
+      "dark",
+      "coffee",
+      // Include the retro theme from DaisyUI
       {
         black: {
-          ...daisyUIThemes["retro"],
+          ...daisyUIThemes["black"],
           primary: "rgb(29, 155, 240)", // Customize the primary color
           secondary: "rgb(24, 24, 24)", // Customize the secondary color
         },

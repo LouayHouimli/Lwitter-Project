@@ -9,8 +9,32 @@ import Sidebar from "./components/common/SideBar";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import Settings from "./pages/profile/Settings";
+import {useEffect} from "react";
 
 function App() {
+    const {
+      data: notifications,
+      isLoading:isNotificating,
+    } = useQuery({
+      queryKey: ["notifications"],
+      queryFn: async () => {
+        try {
+          const res = await fetch("/api/notifications", {
+            method: "GET",
+          });
+          if (!res.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+          const data = await res.json();
+          return data;
+        } catch (error) {
+          return null;
+        }
+      },
+    });
+
+
   
   const {
     data: authUser,
@@ -34,6 +58,9 @@ function App() {
       }
     },
   });
+ 
+    
+  
 
   if (isLoading) {
     return (
@@ -58,6 +85,7 @@ function App() {
         <Route
           path="/notifications"
           element={!authUser ? <Navigate to="/login" /> : <NotificationPage />}
+          
         />
         <Route
           path="/home"
@@ -78,6 +106,10 @@ function App() {
         <Route
           path="/profile/:username"
           element={!authUser ? <Navigate to="/login" /> : <ProfilePage />}
+        />
+        <Route
+          path="/settings"
+          element={!authUser ? <Navigate to="/login" /> : <Settings />}
         />
       </Routes>
       {authUser && <RightPanel />}
