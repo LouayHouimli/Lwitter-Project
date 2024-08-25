@@ -16,6 +16,8 @@ const Posts = ({ feedType, username, userId }) => {
         return `/api/posts/user/${username}`;
       case "likes":
         return `/api/posts/likes/${userId}`;
+      case "bookmarks":
+        return "/api/bookmarks/getbookmarks";
       default:
         return "/api/posts/all";
     }
@@ -45,7 +47,7 @@ const Posts = ({ feedType, username, userId }) => {
   });
   useEffect(() => {
     refetch();
-  }, [feedType, refetch,username,userId]);
+  }, [feedType, refetch, username, userId]);
 
   return (
     <>
@@ -62,7 +64,7 @@ const Posts = ({ feedType, username, userId }) => {
       {!isLoading && !isRefetching && posts && (
         <div>
           {posts.map((post) => (
-            <Post key={post._id} post={post} />
+            <Post key={post._id} post={post} feedType={feedType} />
           ))}
         </div>
       )}

@@ -1,13 +1,13 @@
+import React, { useRef, useState } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
-import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import Axios from "axios";
 import toast from "react-hot-toast";
 
 const CreatePost = () => {
   const [text, setText] = useState("");
+  const [formattedText, setFormattedText] = useState("");
   const [img, setImg] = useState(null);
   const queryClient = useQueryClient();
 
@@ -50,10 +50,10 @@ const CreatePost = () => {
       return;
     }
 
-      createPostMutation({ text, img });
-      console.log(img)
+    createPostMutation({ text, img });
     setText("");
     setImg(null);
+    setFormattedText("");
   };
 
   const handleImgChange = (e) => {
@@ -67,6 +67,17 @@ const CreatePost = () => {
     }
   };
 
+  const handleTextChange = (e) => {
+    const inputText = e.target.value;
+    setText(inputText);
+
+    const formatted = inputText.replace(
+      /(^|\s)(#[a-zA-Z\d-]+)/g,
+      '$1<span class="text-primary">$2</span>'
+    );
+    setFormattedText(formatted);
+  };
+
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
@@ -75,12 +86,19 @@ const CreatePost = () => {
         </div>
       </div>
       <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
-        <textarea
-          className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800 placeholder-gray-500"
-          placeholder="What is happening?!"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+        <div className="relative">
+          <textarea
+            className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-800 placeholder-gray-500"
+            placeholder="What is happening?!"
+            value={text}
+            spellCheck="false"
+            onChange={handleTextChange}
+          />
+          <div
+            className="absolute top-0 left-0 w-full h-full pointer-events-none p-0 text-lg border-none focus:outline-none text-transparent"
+            dangerouslySetInnerHTML={{ __html: formattedText }}
+          />
+        </div>
         {img && (
           <div className="relative w-72 mx-auto">
             <IoCloseSharp
@@ -121,4 +139,5 @@ const CreatePost = () => {
     </div>
   );
 };
+
 export default CreatePost;

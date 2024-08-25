@@ -11,8 +11,12 @@ import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import Axios from "axios";
 import LoadingSpinner from "./LoadingSpinner";
 import formatPostDate from "../../utils/formatPostDate";
+import { HiDotsHorizontal } from "react-icons/hi";
+import { FaSadTear } from "react-icons/fa";
+
 
 const Post = ({ post }) => {
+  
   const [comment, setComment] = useState("");
   const containerRef = useRef(null);
   const queryClient = useQueryClient();
@@ -22,6 +26,7 @@ const Post = ({ post }) => {
 
   const formattedDate = formatPostDate(post.createdAt);
   const isLiked = post.likes.includes(authUser._id);
+  const isBookmarked = post.bookmarks.includes(authUser._id);
 
   const { mutate: deletePostMutation, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
@@ -113,6 +118,37 @@ const Post = ({ post }) => {
       toast.error("Something went wrong");
     },
   });
+  const { mutate: bookmarkPost, isPending: isBookMarking } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/bookmark/${post._id}`, {
+          method: "POST",
+        })
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+        return data;
+        
+      }
+      catch (error) {
+        console.log(error);
+      }
+    },
+    onSuccess: (updatedBookmarks) => {
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, bookmarks: updatedBookmarks };
+          }
+          return p;
+        });
+      });
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  })
 
   const handleDeletePost = async () => {
     deletePostMutation();
@@ -128,6 +164,10 @@ const Post = ({ post }) => {
     commentPost();
   };
 
+  const handleBookmarkPost = async () => {
+    if (isBookMarking) return;
+    bookmarkPost();
+  }
   const handleLikePost = async () => {
     if (isLiking) return;
     likePost();
@@ -138,6 +178,22 @@ const Post = ({ post }) => {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [post.comments]); 
+
+ const renderHashtags = (text) => {
+   const parts = text.split(/(\s+)/); // Split by spaces to retain the spaces in the result
+   return parts.map((part, index) => {
+     if (part.startsWith("#") && /^[#a-zA-Z\d_]+$/.test(part)) {
+       const tag = part.slice(1); // Remove the '#' for the link
+       return (
+         <Link key={index} to={`/explore/${tag}`} className="text-primary">
+           {part}
+         </Link>
+       );
+     }
+     return part; // Return the text as it is if it doesn't match the hashtag pattern
+   });
+ };
+
 
   return (
     <>
@@ -171,20 +227,43 @@ const Post = ({ post }) => {
               <span className="mb-[-3px]">·</span>
               <span>{formattedDate}</span>
             </span>
-            {isMyPost && (
-              <span className="flex justify-end flex-1">
-                {!isDeleting && (
-                  <FaTrash
-                    className="cursor-pointer hover:text-red-500"
-                    onClick={handleDeletePost}
-                  />
-                )}
-                {isDeleting && <LoadingSpinner size="sm" />}
-              </span>
-            )}
+
+            <span className="flex justify-end flex-1">
+              {!isDeleting && (
+                <div className="dropdown ">
+                  <div tabIndex={0} role="button" className="m-1">
+                    <HiDotsHorizontal className="w-5 h-5" />
+                  </div>
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 border border-black"
+                  >
+                    <li className="font-bold flex ">
+                      {isMyPost && (
+                        <a className="  " onClick={deletePostMutation}>
+                          {" "}
+                          <FaTrash /> Delete Post
+                        </a>
+                      )}
+                      <a
+                        className=""
+                        onClick={() => {
+                          toast.error("Hiding Post Feature coming soon");
+                        }}
+                      >
+                        {" "}
+                        <FaSadTear className="w-4 h-4" /> Hide Post
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {isDeleting && <LoadingSpinner size="sm" />}
+            </span>
           </div>
           <div className="flex flex-col gap-3 overflow-hidden">
-            <span>{post.text}</span>
+            <p>{renderHashtags(post.text)}</p>
+
             {post.img && (
               <img
                 src={post.img}
@@ -289,8 +368,8 @@ const Post = ({ post }) => {
                 )}
 
                 <span
-                  className={`text-sm text-slate-500 group-hover:text-pink-500 select-none ${
-                    isLiked ? "text-pink-500" : ""
+                  className={`text-sm text-pink-500 group-hover:text-pink-500 select-none ${
+                    isLiked ? "text-pink-500" : "text-slate-500"
                   }`}
                 >
                   {post.likes.length}
@@ -298,7 +377,24 @@ const Post = ({ post }) => {
               </div>
             </div>
             <div className="flex w-1/3 justify-end gap-2 items-center">
-              <FaRegBookmark className="w-4 h-4 text-slate-500 cursor-pointer" />
+              <div
+                className="flex gap-1 items-center group cursor-pointer"
+                onClick={handleBookmarkPost}
+              >
+                {!isBookmarked && (
+                  <FaRegBookmark className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-blue-500 select-none" />
+                )}
+                {isBookmarked && (
+                  <FaRegBookmark className="w-4 h-4 cursor-pointer text-blue-500 select-none " />
+                )}
+                <span
+                  className={`text-sm text-blue-500 group-hover:text-blue-500 select-none ${
+                    isBookmarked ? "text-blue-500" : "text-slate-500"
+                  }`}
+                >
+                  {post.bookmarks.length}
+                </span>
+              </div>
             </div>
           </div>
         </div>

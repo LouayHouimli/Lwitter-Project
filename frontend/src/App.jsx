@@ -10,6 +10,8 @@ import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import Settings from "./pages/profile/Settings";
+import Bookmark from "./pages/bookmarks/bookmark";
+import Explore from "./pages/home/Explore";
 import {useEffect} from "react";
 
 function App() {
@@ -71,7 +73,7 @@ function App() {
   }
 
   return (
-    <div className="flex max-w-6xl mx-auto">
+    <div className="flex max-w-6xl mx-auto ">
       {authUser && (
         <Sidebar username={authUser.username} fullName={authUser.fullname} />
       )}
@@ -85,7 +87,6 @@ function App() {
         <Route
           path="/notifications"
           element={!authUser ? <Navigate to="/login" /> : <NotificationPage />}
-          
         />
         <Route
           path="/home"
@@ -110,6 +111,18 @@ function App() {
         <Route
           path="/settings"
           element={!authUser ? <Navigate to="/login" /> : <Settings />}
+        />
+        <Route
+          path="/bookmarks"
+          element={!authUser ? <Navigate to="/login" /> : <Bookmark />}
+        />
+        <Route
+          path="/explore"
+          element={!authUser ? <Navigate to="/login" /> : <Explore />}
+        />
+        <Route
+          path="/explore/:search"
+          element={!authUser ? <Navigate to="/login" /> : <Explore />}
         />
       </Routes>
       {authUser && <RightPanel />}

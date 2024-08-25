@@ -53,45 +53,53 @@ const ProfilePage = () => {
   const memberSince = formatMembershipDate(user?.createdAt);
   const isMyProfile = authUser?._id === user?._id;
 
-  const { mutate: updateProfile ,isPending:isUpdatingProfile ,isSuccess,reset} = useMutation({
+  const {
+    mutate: updateProfile,
+    isPending: isUpdatingProfile,
+    isSuccess,
+    reset,
+  } = useMutation({
     mutationFn: async () => {
-      try {
-        const res = await fetch(`/api/users/update`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            profileImg,
-            coverImg,
-          }),
-        })
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message);
-        }
-        if (data.message) {
-          toast.success(data.message);
-          Promise.all([
-            queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-            queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-          ]);
-          
-          
-            
-        }
-        
+      return toast.promise(
+        (async () => {
+          try {
+            const res = await fetch(`/api/users/update`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                profileImg,
+                coverImg,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              throw new Error(data.message);
+            }
 
-        return data;
-      }
-      catch (error) {
-        console.log(error)
-        
-      }
-                            
+            return data;
+          } catch (error) {
+            console.log(error);
+            throw error; // Rethrow the error to be caught by toast.promise
+          }
+        })(),
+        {
+          loading: "Updating...",
+          success: <b>Profile updated successfully!</b>,
+          error: <b>Could not update profile.</b>,
+        }
+      );
     },
-   
-  })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+    },
+    onError: (error) => {
+      console.log(error.message);
+    },
+  });
+
 
 
 
@@ -209,7 +217,8 @@ const ProfilePage = () => {
                       updateProfile();
                     }}
                   >
-                    {isUpdatingProfile ? "Updating" : "Save"}
+                    {/* {isUpdatingProfile ?  : "Save"} */}
+                    {isUpdatingProfile ? "Updating..." : "Save"}
                   </button>
                 )}
               </div>

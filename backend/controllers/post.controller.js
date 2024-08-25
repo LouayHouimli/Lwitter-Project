@@ -92,7 +92,7 @@ export const likeUnlikePost = async (req, res) => {
         if (post.likes.includes(userId)) {
             await post.updateOne({ $pull: { likes: userId } });
              await user.updateOne({ $pull: { likedPosts: postId } });
-            const updatedLikes = post.likes.filter((like) => like != userId);
+            const updatedLikes = post.likes.pull(userId);
             await Notification.deleteMany({ sender: userId, receiver: post.user, type: "like" });
     return res.status(200).json(updatedLikes);
 } else {
@@ -262,7 +262,6 @@ export const getLikedPosts = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
 export const getFollowingPosts = async (req, res) => {
     const userId = req.user._id;
     try {
@@ -313,4 +312,79 @@ export const getUserPosts = async (req, res) => {
         console.log("error in getUserPosts from post.controller.js", error.message);
         res.status(500).json({ error: error.message });
     }
+}
+export const getSearchResults = async (req, res) => {
+    const searchTerm = req.params.search;
+
+    try {
+        const posts = await Post.find({
+     $or: [
+        { text: { $regex: new RegExp(searchTerm, 'i') } },
+        { 'user.username': { $regex: new RegExp(searchTerm, 'i') } },
+        { 'user.fullname': { $regex: new RegExp(searchTerm, 'i') } }
+    ],
+    
+})
+.sort({ createdAt: -1 })
+.populate({
+    path: "user",
+    select: "fullname username profileImg",
+})
+.populate({
+    path: "comments.user",
+    select: "fullname username profileImg",
+});
+
+        if (posts.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        res.status(200).json(posts);
+
+        
+    }
+    catch (error) {
+        console.log("error in getSearchResults from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+        
+    }
+
+}
+export const bookMarkPost = async (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user._id;
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        if (post.bookmarks.includes(userId)) {
+            await post.updateOne({ $pull: { bookmarks: userId } });
+            await user.updateOne({ $pull: { bookmarkedPosts: postId } });
+            const updatedBookmarks = post.bookmarks.pull(userId);
+            return res.status(200).json(updatedBookmarks);
+            
+        } else {
+            await post.updateOne({ $push: { bookmarks: userId } });
+            await user.updateOne ({$push : {bookmarkedPosts : postId}});
+            post.bookmarks.push(userId);
+            return res.status(200).json(post.bookmarks);
+            
+        }
+        
+
+        
+    }
+    catch (error) {
+        console.log("error in bookMarkPost from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+        
+    }
+    
 }

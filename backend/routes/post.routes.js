@@ -9,6 +9,8 @@ import { getAllPosts } from '../controllers/post.controller.js'
 import { getLikedPosts } from '../controllers/post.controller.js'
 import { getFollowingPosts } from '../controllers/post.controller.js'
 import { getUserPosts } from '../controllers/post.controller.js'
+import { getSearchResults } from '../controllers/post.controller.js'
+import { bookMarkPost } from '../controllers/post.controller.js'
 
 const router = express.Router();
 
@@ -21,6 +23,8 @@ router.delete("/delete-post/:id", protectRoute, deletePost)
 router.post("/comment/:id", protectRoute, commentOnPost)
 router.delete("/:postId/delete-comment/:commentId", protectRoute, deleteComment)
 router.post("/like/:id", protectRoute, likeUnlikePost)
+router.post("/bookmark/:id", protectRoute, bookMarkPost)
+router.get("/explore/:search", protectRoute, getSearchResults)
 
 
 
