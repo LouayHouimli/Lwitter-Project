@@ -10,17 +10,20 @@ export default {
 
   daisyui: {
     themes: [
-      "light",
       "retro", 
       "black",
       "dark", 
+      "synthwave",
+      "valentine",
       // Include the retro theme from DaisyUI
       {
         black: {
           ...daisyUIThemes["black"],
           primary: "rgb(29, 155, 240)", // Customize the primary color
           secondary: "rgb(24, 24, 24)", // Customize the secondary color
+
         },
+       
       },
     ],
   },

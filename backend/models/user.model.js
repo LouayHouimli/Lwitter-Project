@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     ] ,  
     profileImg: {
         type: String,
-        default: ""
+        default: "https://raw.githubusercontent.com/LouayHouimli/Lwitter-Project/main/frontend/public/avatar-placeholder.png"
     },
     coverImg: {
         type: String,
@@ -78,7 +78,15 @@ const userSchema = new mongoose.Schema({
     isMod: {
         type: Boolean,
         default: false
-    }
+    },
+    Settings: {
+        Appearance: {
+            type: String,
+            enum: ["retro", "dark","synthwave","valentine"],
+            default: "retro"
+        }
+}
+
 
 }, { timestamps: true });
 

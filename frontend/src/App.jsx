@@ -15,31 +15,28 @@ import Explore from "./pages/home/Explore";
 import Messages from "./pages/messages/messages";
 import {useEffect} from "react";
 import PostPreview from "./pages/post/PostPreview";
+import {useState} from "react";
 
 function App() {
-    const {
-      data: notifications,
-      isLoading:isNotificating,
-    } = useQuery({
-      queryKey: ["notifications"],
-      queryFn: async () => {
-        try {
-          const res = await fetch("/api/notifications", {
-            method: "GET",
-          });
-          if (!res.ok) {
-            throw new Error("Failed to fetch user data");
-          }
-          const data = await res.json();
-          return data;
-        } catch (error) {
-          return null;
+  const [theme, setTheme] = useState("light"); // Initial theme
+  const { data: notifications, isLoading: isNotificating } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/notifications", {
+          method: "GET",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to fetch user data");
         }
-      },
-    });
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        return null;
+      }
+    },
+  });
 
-
-  
   const {
     data: authUser,
     isLoading,
@@ -62,9 +59,23 @@ function App() {
       }
     },
   });
- 
-    
-  
+
+  useEffect(() => {
+    if (authUser && authUser.Settings.Appearance) {
+      setTheme(authUser.Settings.Appearance);
+    }
+  }, [authUser]);
+
+  // Apply the theme to the HTML element
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  // Toggle between themes
+  const toggleTheme = () => {
+    const newTheme = theme === "retro" ? "dark" : "retro"; // Change theme
+    setTheme(newTheme);
+  };
 
   if (isLoading) {
     return (
@@ -132,10 +143,10 @@ function App() {
         />
         <Route
           path="/messages"
-          element={!authUser ? <Navigate to="/login" /> : <Messages/>}
+          element={!authUser ? <Navigate to="/login" /> : <Messages />}
         />
       </Routes>
-    
+
       {authUser && <RightPanel />}
       <Toaster />
     </div>

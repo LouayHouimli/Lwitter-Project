@@ -85,7 +85,7 @@ const ProfilePage = () => {
         if (!res.ok) {
           throw new Error(data.message);
         }
-        console.log(data);
+
         return data;
       } catch (error) {
         console.log(error);
@@ -225,7 +225,7 @@ const ProfilePage = () => {
                 />
                 {isMyProfile && (
                   <div
-                    className="absolute top-2 right-2 rounded-full p-2 bg-gray-800 bg-opacity-75 cursor-pointer opacity-0 group-hover/cover:opacity-100 transition duration-200"
+                    className="absolute top-2 right-2 rounded-full p-2 bg-primary bg-opacity-75 cursor-pointer opacity-0 group-hover/cover:opacity-100 transition duration-200"
                     onClick={() => coverImgRef.current.click()}
                   >
                     <MdEdit className="w-5 h-5 text-white" />
@@ -300,10 +300,10 @@ const ProfilePage = () => {
                     <span className="font-bold text-lg flex items-center">
                       <span className="mt-0.5 ">{user?.fullname}</span>
 
-                      <div className="gap-1 flex">
+                      <span className="flex flex-row gap-1"> 
                         {user?.isVerified && (
                           <MdVerified
-                            className="text-blue-400 ml-1 align-middle cursor-pointer" // Ensure alignment
+                            className="text-blue-500 ml-1 align-middle cursor-pointer" // Ensure alignment
                             aria-label="verified"
                             title="Verified Member"
                           />
@@ -311,10 +311,10 @@ const ProfilePage = () => {
                         {user?.isMod && (
                           <FaSquareXTwitter
                             title="Lwitter Mod"
-                            className="cursor-pointer"
+                            className="cursor-pointer "
                           />
                         )}
-                      </div>
+                      </span>
                     </span>
                   </div>
                   <span className="text-sm text-slate-500">

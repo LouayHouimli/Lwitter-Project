@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "../common/LoadingSpinner";
 import useFollow from "../hooks/useFollow";
 import { MdVerified } from "react-icons/md";
+import { FaSquareXTwitter } from "react-icons/fa6";
 
 const SuggestedPanel = () => {
   const { data: suggestedUsers, isLoading } = useQuery({
@@ -63,14 +64,22 @@ const SuggestedPanel = () => {
                   <div className="flex flex-col">
                     <span className="font-semibold tracking-tight truncate w-full space">
                       <p className="flex items-center gap-2 leading-none ">
-                        {user?.fullname}{" "}
-                        {user?.isVerified && (
-                          <MdVerified
-                            className="text-blue-500 "
-                            aria-label="verified"
-                            title="Verified Member"
-                          />
-                        )}
+                        <span className="flex flex-row gap-1 leading-none">
+                          {user?.fullname}{" "}
+                          {user?.isVerified && (
+                            <MdVerified
+                              className="text-blue-500 "
+                              aria-label="verified"
+                              title="Verified Member"
+                            />
+                          )}
+                          {user?.isMod && (
+                            <FaSquareXTwitter
+                              title="Lwitter Mod"
+                              className="cursor-pointer"
+                            />
+                          )}
+                        </span>
                       </p>
                     </span>
 

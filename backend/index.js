@@ -4,6 +4,7 @@ import userRoutes from './routes/user.routes.js'
 import postRoutes from './routes/post.routes.js'
 import notificationRoutes from './routes/notification.routes.js'
 import bookmarksRoutes from './routes/bookmarks.routes.js'
+import settingsRoutes from './routes/settings.routes.js'
 import dotenv from 'dotenv'
 import connectMongoDB from './db/connectDB.js'
 import cors from 'cors'
@@ -33,6 +34,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/posts", postRoutes)
 app.use("/api/notifications", notificationRoutes)
 app.use("/api/bookmarks", bookmarksRoutes)
+app.use("/api/settings", settingsRoutes)
 
 
 app.listen(PORT, (req, res) => {
