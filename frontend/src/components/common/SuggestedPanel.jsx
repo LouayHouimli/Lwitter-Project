@@ -62,11 +62,11 @@ const SuggestedPanel = () => {
                   </div>
                   <div className="flex flex-col">
                     <span className="font-semibold tracking-tight truncate w-full space">
-                      <p className="flex items-center gap-2 ">
+                      <p className="flex items-center gap-2 leading-none ">
                         {user?.fullname}{" "}
                         {user?.isVerified && (
                           <MdVerified
-                            className="text-gray-700 "
+                            className="text-blue-500 "
                             aria-label="verified"
                             title="Verified Member"
                           />

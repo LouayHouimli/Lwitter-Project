@@ -13,16 +13,21 @@ import LoadingSpinner from "./LoadingSpinner";
 import formatPostDate from "../../utils/formatPostDate";
 import { HiDotsHorizontal } from "react-icons/hi";
 import { FaSadTear } from "react-icons/fa";
+import {useNavigate} from "react-router-dom";
 
 
 const Post = ({ post }) => {
-  
+  const navigate = useNavigate()
   const [comment, setComment] = useState("");
   const containerRef = useRef(null);
   const queryClient = useQueryClient();
-  const postOwner = post.user;
+  const postOwner = post.user
+  const formatedDate = post.createdAt.substring(0, post.createdAt.lastIndexOf("T"));
+  
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const isMyPost = authUser._id === postOwner._id;
+  const doIReposted = post.reposts.includes(post.user?._id);
+  
 
   const formattedDate = formatPostDate(post.createdAt);
   const isLiked = post.likes.includes(authUser._id);
@@ -197,7 +202,7 @@ const Post = ({ post }) => {
 
   return (
     <>
-      <div className="flex gap-2 items-start p-4 border-b border-gray-700">
+      <div className="flex gap-2 items-start p-4 border-b border-gray-700  ">
         <div className="avatar">
           <Link
             to={`/profile/${postOwner.username}`}
@@ -213,22 +218,23 @@ const Post = ({ post }) => {
                 {postOwner.fullname}
                 {postOwner?.isVerified && (
                   <MdVerified
-                    className="text-primary flex-shrink-0 text-base align-middle "
+                    className="text-blue-400 flex-shrink-0 text-base align-middle "
                     aria-label="verified"
                     title="Verified Member"
                   />
                 )}
               </p>
             </Link>
-            <span className="text-gray-700 flex gap-1 text-sm mb-[-3px]">
+            <p className=" flex gap-1 text-sm  ">
               <Link to={`/profile/${postOwner.username}`}>
                 @{postOwner.username}
               </Link>
-              <span className="mb-[-3px]">·</span>
-              <span>{formattedDate}</span>
-            </span>
+            </p>
 
-            <span className="flex justify-end flex-1">
+            <span className="mb-[-3px]">·</span>
+            <span title={formatedDate}>{formattedDate}</span>
+
+            <span className="flex justify-end flex-1 ">
               {!isDeleting && (
                 <div className="dropdown ">
                   <div tabIndex={0} role="button" className="m-1">
@@ -261,13 +267,16 @@ const Post = ({ post }) => {
               {isDeleting && <LoadingSpinner size="sm" />}
             </span>
           </div>
-          <div className="flex flex-col gap-3 overflow-hidden">
+          <div
+            className="flex flex-col gap-3 overflow-hidden   "
+            onClick={() => navigate(`/post/${post._id}`)}
+          >
             <p>{renderHashtags(post.text)}</p>
 
             {post.img && (
               <img
                 src={post.img}
-                className="h-80 object-contain rounded-lg border border-gray-700 "
+                className="h-auto object-cover rounded-lg border border-gray-700 cursor-pointer w-full   "
                 alt=""
               />
             )}
@@ -317,7 +326,7 @@ const Post = ({ post }) => {
                         </div>
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1">
-                            <span className="font-bold">
+                            <span className="font-bold ">
                               {comment.user.fullName}
                             </span>
                             <span className="text-gray-700 text-sm">

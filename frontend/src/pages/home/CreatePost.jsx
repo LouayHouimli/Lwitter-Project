@@ -81,7 +81,7 @@ const CreatePost = () => {
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
-        <div className="w-8 rounded-full border-solid border-2 border-black">
+        <div className="w-8 rounded-full ">
           <img src={data.profileImg || "/avatar-placeholder.png"} />
         </div>
       </div>

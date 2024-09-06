@@ -11,6 +11,8 @@ import { getFollowingPosts } from '../controllers/post.controller.js'
 import { getUserPosts } from '../controllers/post.controller.js'
 import { getSearchResults } from '../controllers/post.controller.js'
 import { bookMarkPost } from '../controllers/post.controller.js'
+import { repostPost } from '../controllers/post.controller.js'
+import { getPost } from '../controllers/post.controller.js'
 
 const router = express.Router();
 
@@ -24,7 +26,9 @@ router.post("/comment/:id", protectRoute, commentOnPost)
 router.delete("/:postId/delete-comment/:commentId", protectRoute, deleteComment)
 router.post("/like/:id", protectRoute, likeUnlikePost)
 router.post("/bookmark/:id", protectRoute, bookMarkPost)
-router.get("/explore/:search", protectRoute, getSearchResults)
+router.post("/repost/:id", protectRoute, repostPost)
+router.get("/explore", protectRoute, getSearchResults);
+router.get("/post/:id",protectRoute, getPost);
 
 
 

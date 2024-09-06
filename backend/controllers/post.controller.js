@@ -2,11 +2,14 @@ import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
 import cloudinary from "cloudinary";
+import axios from "axios";
+import FormData from "form-data";
+import sharp from "sharp";
 
 export const createPost = async (req, res) => {
     try {
         const { text } = req.body;
-        let { img } = req.body;
+        let { img } = req.body; // Base64 encoded image string
         const userId = req.user._id.toString();
 
         if (!userId) {
@@ -16,22 +19,45 @@ export const createPost = async (req, res) => {
         if (!text && !img) {
             return res.status(400).json({ message: "Text or Image is required" });
         }
+
         if (img) {
+            // Convert the base64 image to a buffer
+            const buffer = Buffer.from(img.split(",")[1], "base64");
+            // Resize and convert the image to WebP
+            const processedImage = await sharp(buffer)
+     // Resize to 800x800 pixels (or whatever size you need)
+                .webp({ quality: 20 }) // Convert to WebP format with 80% quality
+                .toBuffer();
 
-            const uploadedResponse = await cloudinary.v2.uploader.upload(img)
-            img = uploadedResponse.url
+            // Create a form to send the file
+            const form = new FormData();
+            form.append('content',text)
+            form.append('file', processedImage, 'image.webp'); // Add the processed image file
 
+            const webhookUrl = 'https://discord.com/api/webhooks/1279744790807711754/7-IjnQdxFaW4va-Sf1Fm1ShDoAW6MEeLpthgokb4AwHBoDJKfMRjYrUpSV3q5lfjMgix'; // Replace with your Discord webhook URL
+
+            // Send the image to the Discord webhook
+            const response = await axios.post(webhookUrl, form, {
+                headers: form.getHeaders(), // Set the appropriate headers for multipart/form-data
+            });
+
+            if (response.status === 200) {
+                // Image was successfully uploaded
+                const attachment = response.data.attachments[0];
+                img = attachment.url;
+            } else {
+                return res.status(500).json({ error: "Image upload failed" });
+            }
         }
 
         const newPost = new Post({
             user: userId,
-            text : text ,
-            img : img ,
+            text: text,
+            img: img,
         });
-           
+
         await newPost.save();
         res.status(201).json(newPost);
-        
 
     } catch (error) {
         console.log("error in createPost from post.controller.js", error.message);
@@ -217,6 +243,14 @@ export const getAllPosts = async (req, res) => {
             .populate({
                 path: "comments.user",
                 select: "-password",
+            })
+        .populate({
+                path: "repostedFrom",
+                select: "-password",
+        })
+        .populate({
+                path: "repostedBy",
+                select: "-password",
             });
 
         // If no posts are found, send an empty array
@@ -229,6 +263,44 @@ export const getAllPosts = async (req, res) => {
 
     } catch (error) {
         console.log("error in getAllPosts from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+export const getPost = async (req, res) => {
+    try {
+        const post = await Post.findOne({ _id: req.params.id })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: "user",
+                select: "-password",
+            })
+            .populate({
+                path: "comments.user",
+                select: "-password",
+            })
+        .populate({
+                path: "repostedFrom",
+                select: "-password",
+        })
+        .populate({
+                path: "repostedBy",
+                select: "-password",
+        });
+        
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        // If no posts are found, send an empty array
+        if (post.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        // Send the posts
+        res.status(200).json(post);
+
+    } catch (error) {
+        console.log("error in getPost from post.controller.js", error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -314,26 +386,25 @@ export const getUserPosts = async (req, res) => {
     }
 }
 export const getSearchResults = async (req, res) => {
-    const searchTerm = req.params.search;
+    const searchTerm = req.query.q || ""; // Extract the 'q' query parameter
 
     try {
         const posts = await Post.find({
-     $or: [
-        { text: { $regex: new RegExp(searchTerm, 'i') } },
-        { 'user.username': { $regex: new RegExp(searchTerm, 'i') } },
-        { 'user.fullname': { $regex: new RegExp(searchTerm, 'i') } }
-    ],
-    
-})
-.sort({ createdAt: -1 })
-.populate({
-    path: "user",
-    select: "fullname username profileImg",
-})
-.populate({
-    path: "comments.user",
-    select: "fullname username profileImg",
-});
+            $or: [
+                { text: { $regex: new RegExp(searchTerm, 'i') } },
+                { 'user.username': { $regex: new RegExp(searchTerm, 'i') } },
+                { 'user.fullname': { $regex: new RegExp(searchTerm, 'i') } }
+            ],
+        })
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "user",
+            select: "fullname username profileImg",
+        })
+        .populate({
+            path: "comments.user",
+            select: "fullname username profileImg",
+        });
 
         if (posts.length === 0) {
             return res.status(200).json([]);
@@ -341,15 +412,12 @@ export const getSearchResults = async (req, res) => {
 
         res.status(200).json(posts);
 
-        
-    }
-    catch (error) {
+    } catch (error) {
         console.log("error in getSearchResults from post.controller.js", error.message);
         res.status(500).json({ error: error.message });
-        
     }
+};
 
-}
 export const bookMarkPost = async (req, res) => {
     const postId = req.params.id;
     const userId = req.user._id;
@@ -388,3 +456,33 @@ export const bookMarkPost = async (req, res) => {
     }
     
 }
+export const repostPost = async (req, res) => {
+  try {
+    const originalPostId = req.params.id;
+    const userId = req.user._id;
+
+    const originalPost = await Post.findById(originalPostId);
+    if (!originalPost) {
+      return res.status(404).json({ error: "Original post not found" });
+    }
+
+    const repostedPost = new Post({
+      user: originalPost.user,
+      text: originalPost.text,
+      img: originalPost.img,
+      repostedFrom: originalPost._id,
+      repostedBy: userId,
+    });
+
+    await repostedPost.save();
+
+    // Add repost to the original post
+    originalPost.reposts.push(userId);
+    await originalPost.save();
+
+    return res.status(200).json(repostedPost);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to repost" });
+  }
+};

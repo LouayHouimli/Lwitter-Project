@@ -13,6 +13,7 @@ import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
 
 const SignUpPage = () => {
+  document.title = "Signup up for X / X";
   const navigate = useNavigate();
   const intervalId = useRef();
   const [formData, setFormData] = useState({

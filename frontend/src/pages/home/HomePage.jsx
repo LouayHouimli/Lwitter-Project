@@ -5,6 +5,7 @@ import CreatePost from "./CreatePost";
 import { useQueryClient } from "@tanstack/react-query";
 
 const HomePage = () => {
+  document.title = "Home / X";
   const [feedType, setFeedType] = useState("forYou");
   const queryClient = useQueryClient();
 

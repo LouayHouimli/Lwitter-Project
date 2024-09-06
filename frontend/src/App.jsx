@@ -12,7 +12,9 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import Settings from "./pages/profile/Settings";
 import Bookmark from "./pages/bookmarks/bookmark";
 import Explore from "./pages/home/Explore";
+import Messages from "./pages/messages/messages";
 import {useEffect} from "react";
+import PostPreview from "./pages/post/PostPreview";
 
 function App() {
     const {
@@ -117,6 +119,10 @@ function App() {
           element={!authUser ? <Navigate to="/login" /> : <Bookmark />}
         />
         <Route
+          path="/post/:id"
+          element={!authUser ? <Navigate to="/login" /> : <PostPreview />}
+        />
+        <Route
           path="/explore"
           element={!authUser ? <Navigate to="/login" /> : <Explore />}
         />
@@ -124,7 +130,12 @@ function App() {
           path="/explore/:search"
           element={!authUser ? <Navigate to="/login" /> : <Explore />}
         />
+        <Route
+          path="/messages"
+          element={!authUser ? <Navigate to="/login" /> : <Messages/>}
+        />
       </Routes>
+    
       {authUser && <RightPanel />}
       <Toaster />
     </div>

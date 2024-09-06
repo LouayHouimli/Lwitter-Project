@@ -13,8 +13,7 @@ export default {
       "light",
       "retro", 
       "black",
-      "dark",
-      "coffee",
+      "dark", 
       // Include the retro theme from DaisyUI
       {
         black: {

@@ -5,10 +5,12 @@ import XSvg from "../../../components/svgs/X";
 import { useMutation } from "@tanstack/react-query";
 import { MdOutlineMail } from "react-icons/md";
 import { MdPassword } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
+  document.title = "Login for X / X";
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
@@ -66,7 +68,7 @@ const LoginPage = () => {
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen">
       <div className="flex-1 hidden lg:flex items-center  justify-center">
-        <XSvg className="lg:w-2/3 fill-black" />
+        <XSvg className="lg:w-[100%] flex justify-center items-center fill-black" />
       </div>
       <div className="flex-1 flex flex-col justify-center items-center">
         <form className="flex gap-4 flex-col" onSubmit={handleSubmit}>
@@ -74,7 +76,7 @@ const LoginPage = () => {
           <h1 className="text-4xl font-extrabold text-black">{"Let's"} go.</h1>
           
           <label className="input input-bordered rounded flex items-center gap-2">
-            <MdOutlineMail />
+            <FaUser />
             <input
               type="text"
               className="grow"

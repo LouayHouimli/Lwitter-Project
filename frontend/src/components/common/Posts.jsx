@@ -3,7 +3,7 @@ import PostSkeleton from "../skeletons/PostSkeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-const Posts = ({ feedType, username, userId }) => {
+const Posts = ({ feedType, username, userId, searchFiled }) => {
   const queryClient = useQueryClient();
   // const isLoading = false;
   const getPostEndPoint = () => {
@@ -18,6 +18,8 @@ const Posts = ({ feedType, username, userId }) => {
         return `/api/posts/likes/${userId}`;
       case "bookmarks":
         return "/api/bookmarks/getbookmarks";
+      case "search":
+        return `/api/posts/explore/${searchFiled}`;
       default:
         return "/api/posts/all";
     }
@@ -59,7 +61,7 @@ const Posts = ({ feedType, username, userId }) => {
         </div>
       )}
       {!isLoading && !isRefetching && posts?.length === 0 && (
-        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
+        <p className="text-center my-4">No posts in {feedType}. Switch 👻</p>
       )}
       {!isLoading && !isRefetching && posts && (
         <div>

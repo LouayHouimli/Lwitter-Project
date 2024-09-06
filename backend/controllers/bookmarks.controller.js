@@ -11,7 +11,8 @@ export const getBookmarks = async (req, res) => {
                 path: "user",
                 select: "fullname username profileImg",
             },
-        });
+        })
+        .sort({ createdAt: -1 })
 
         if (!user) {
             return res.status(404).json({ error: "User not found" });

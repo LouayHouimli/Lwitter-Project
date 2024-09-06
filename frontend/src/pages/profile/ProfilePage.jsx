@@ -3,18 +3,21 @@ import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
-import { useQuery,useMutation,useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { POSTS } from "../../utils/db/dummy";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import { MdVerified } from "react-icons/md";
+import { FaSquareXTwitter } from "react-icons/fa6";
 import formatMembershipDate from "../../utils/formatMemberSinceDate";
 import useFollow from "../../components/hooks/useFollow";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import toast from "react-hot-toast";
-
+import "../../index.css";
+import XSvg from "../../components/svgs/X";
+import User from "../../components/common/User";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -28,7 +31,7 @@ const ProfilePage = () => {
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const { data: POSTS } = useQuery({ queryKey: ["posts"] });
   const { username } = useParams();
-  const { follow ,isPending } = useFollow();
+  const { follow, isPending } = useFollow();
 
   const {
     data: user,
@@ -44,6 +47,7 @@ const ProfilePage = () => {
         if (!res.ok) {
           throw new Error(data.message);
         }
+        
         return data;
       } catch (error) {
         console.log(error);
@@ -52,6 +56,42 @@ const ProfilePage = () => {
   });
   const memberSince = formatMembershipDate(user?.createdAt);
   const isMyProfile = authUser?._id === user?._id;
+
+   const {
+     data: followersUser,
+   } = useQuery({
+     queryKey: ["followers"],
+     queryFn: async () => {
+       try {
+         
+         const res = await fetch(`/api/users/followers/${user?._id}`);
+         const data = await res.json();
+         if (!res.ok) {
+           throw new Error(data.message);
+         }
+
+         return data;
+       } catch (error) {
+         console.log(error);
+       }
+     },
+   });
+  const { data: followingUser } = useQuery({
+    queryKey: ["following"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/users/following/${user?._id}`);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+        console.log(data);
+        return data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  });
 
   const {
     mutate: updateProfile,
@@ -100,11 +140,6 @@ const ProfilePage = () => {
     },
   });
 
-
-
-
-
-
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
     if (file) {
@@ -121,16 +156,52 @@ const ProfilePage = () => {
   useEffect(() => {
     document.title = `Profile - ${user?.fullname}`;
     refetch();
-  }, [username, refetch,user]);
+  }, [username, refetch, user]);
 
   return (
     <>
+      <dialog id="following" className="modal">
+        <div className="modal-box w-1/2">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg">Following</h3>
+          {followingUser?.length ? (
+            followingUser.map((following) => (
+              <User key={following._id} user={following} />
+            ))
+          ) : (
+            <p className="py-4">No following users found.</p>
+          )}
+        </div>
+      </dialog>
+
+      <dialog id="followers" className="modal">
+        <div className="modal-box w-1/2">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg">Followers</h3>
+          {followersUser?.length ? (
+            followersUser.map((follower) => (
+              <User key={follower._id} user={follower} />
+            ))
+          ) : (
+            <p className="py-4">No followers found.</p>
+          )}
+        </div>
+      </dialog>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
         {isLoading || (isRefetching && <ProfileHeaderSkeleton />)}
         {!isLoading && !isRefetching && !user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
+
         <div className="flex flex-col">
           {!isLoading && !isRefetching && user && (
             <>
@@ -227,15 +298,23 @@ const ProfilePage = () => {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-lg flex items-center">
-                      <span className="mt-0.5">{user?.fullname}</span>
+                      <span className="mt-0.5 ">{user?.fullname}</span>
 
-                      {user?.isVerified && (
-                        <MdVerified
-                          className="text-primary ml-1 align-middle" // Ensure alignment
-                          aria-label="verified"
-                          title="Verified Member"
-                        />
-                      )}
+                      <div className="gap-1 flex">
+                        {user?.isVerified && (
+                          <MdVerified
+                            className="text-blue-400 ml-1 align-middle cursor-pointer" // Ensure alignment
+                            aria-label="verified"
+                            title="Verified Member"
+                          />
+                        )}
+                        {user?.isMod && (
+                          <FaSquareXTwitter
+                            title="Lwitter Mod"
+                            className="cursor-pointer"
+                          />
+                        )}
+                      </div>
                     </span>
                   </div>
                   <span className="text-sm text-slate-500">
@@ -269,13 +348,23 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <div className="flex gap-1 items-center">
+                  <div
+                    className="flex gap-1 items-center cursor-pointer"
+                    onClick={() =>
+                      document.getElementById("following").showModal()
+                    }
+                  >
                     <span className="font-bold text-xs">
                       {user?.following.length}
                     </span>
                     <span className="text-slate-500 text-xs">Following</span>
                   </div>
-                  <div className="flex gap-1 items-center">
+                  <div
+                    className="flex gap-1 items-center cursor-pointer"
+                    onClick={() =>
+                      document.getElementById("followers").showModal()
+                    }
+                  >
                     <span className="font-bold text-xs">
                       {user?.followers.length}
                     </span>

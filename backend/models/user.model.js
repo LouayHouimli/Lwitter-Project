@@ -64,7 +64,18 @@ const userSchema = new mongoose.Schema({
             default: []
         },
     ],
+    repostedPosts : [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post",
+            default: []
+        },
+    ],
     isVerified: {
+        type: Boolean,
+        default: false
+    },
+    isMod: {
         type: Boolean,
         default: false
     }
