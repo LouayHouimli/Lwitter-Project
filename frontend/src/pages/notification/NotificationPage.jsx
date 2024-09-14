@@ -7,6 +7,7 @@ import { FaComment } from "react-icons/fa";
 import { FaRetweet } from "react-icons/fa";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { MdVerified } from "react-icons/md";
 
 const NotificationPage = () => {
   
@@ -118,16 +119,23 @@ const NotificationPage = () => {
                     />
                   </div>
                 </div>
-                <div className="flex gap-1 ">
-                  <span className="font-bold">
+                <div className="flex gap-1 justify-center items-center ">
+                  
+                  <span className="font-bold flex flex-row justify-center items-center gap-1">
+                    
                     @{notification.sender.username}
+                    {notification.sender.isVerified && <MdVerified className="text-blue-500"/>}
                   </span>{" "}
                   <span className="font-bold ">
                     {" "}
                     {getNotificationMessage(notification.type)}{" "}
                   </span>
                 </div>
-                <div className="font-bold flex ">{notification?.content ? "Comment : " +  notification.content : "" }</div>
+                <div className="font-bold flex ">
+                  {notification?.content
+                    ? "Comment : " + notification.content
+                    : ""}
+                </div>
               </Link>
             </div>
           </div>

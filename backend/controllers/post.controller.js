@@ -21,33 +21,10 @@ export const createPost = async (req, res) => {
         }
 
         if (img) {
-            // Convert the base64 image to a buffer
-            const buffer = Buffer.from(img.split(",")[1], "base64");
-            // Resize and convert the image to WebP
-            const processedImage = await sharp(buffer)
-     // Resize to 800x800 pixels (or whatever size you need)
-                .webp({ quality: 20 }) // Convert to WebP format with 80% quality
-                .toBuffer();
 
-            // Create a form to send the file
-            const form = new FormData();
-            form.append('content',text)
-            form.append('file', processedImage, 'image.webp'); // Add the processed image file
+            const uploadedResponse = await cloudinary.v2.uploader.upload(img)
+            img = uploadedResponse.url
 
-            const webhookUrl = 'https://discord.com/api/webhooks/1279744790807711754/7-IjnQdxFaW4va-Sf1Fm1ShDoAW6MEeLpthgokb4AwHBoDJKfMRjYrUpSV3q5lfjMgix'; // Replace with your Discord webhook URL
-
-            // Send the image to the Discord webhook
-            const response = await axios.post(webhookUrl, form, {
-                headers: form.getHeaders(), // Set the appropriate headers for multipart/form-data
-            });
-
-            if (response.status === 200) {
-                // Image was successfully uploaded
-                const attachment = response.data.attachments[0];
-                img = attachment.url;
-            } else {
-                return res.status(500).json({ error: "Image upload failed" });
-            }
         }
 
         const newPost = new Post({
@@ -79,9 +56,10 @@ export const deletePost = async (req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        if (post.user.toString() !== userId) {
-            return res.status(401).json({ message: "You can only delete your own posts" });
+        if (post.user.toString() !== userId && !user.isMod ) {
+            return res.status(401).json({ message: "You can only delete your own posts or by mods" });
         }
+
 
         if (post.img) {
             const imgId = post.img.split("/").pop().split(".")[0];
@@ -185,7 +163,7 @@ export const commentOnPost = async (req, res) => {
    
     const updatedPost = await Post.findById(postId).populate({
       path: 'comments.user',
-      select: 'username profileImg', 
+      select: 'username fullname isVerified isMod profileImg', 
     });
 
     return res.status(200).json(updatedPost.comments);
@@ -369,7 +347,7 @@ export const getUserPosts = async (req, res) => {
         }
         const posts = await Post.find({ user: user._id }).sort({ createdAt: -1 }).populate({
             path: "user",
-            select: "fullname username profileImg",
+            select: "fullname username profileImg isVerified isMod",
         }).populate({
             path: "comments.user",
             select: "fullname username profileImg",

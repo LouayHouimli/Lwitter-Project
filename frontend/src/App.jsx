@@ -13,12 +13,12 @@ import Settings from "./pages/profile/Settings";
 import Bookmark from "./pages/bookmarks/bookmark";
 import Explore from "./pages/home/Explore";
 import Messages from "./pages/messages/messages";
-import {useEffect} from "react";
+import { useEffect } from "react";
 import PostPreview from "./pages/post/PostPreview";
-import {useState} from "react";
+import { useState } from "react";
 
 function App() {
-  const [theme, setTheme] = useState("light"); // Initial theme
+  const [theme, setTheme] = useState("retro"); // Initial theme
   const { data: notifications, isLoading: isNotificating } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
@@ -87,9 +87,12 @@ function App() {
 
   return (
     <div className="flex max-w-6xl mx-auto ">
-      {authUser && (
-        <Sidebar username={authUser.username} fullName={authUser.fullname} />
-      )}
+      <Toaster />
+
+        {authUser && (
+          <Sidebar username={authUser.username} fullName={authUser.fullname} />
+        )}
+
       <Routes>
         <Route
           path="/"
@@ -148,7 +151,6 @@ function App() {
       </Routes>
 
       {authUser && <RightPanel />}
-      <Toaster />
     </div>
   );
 }

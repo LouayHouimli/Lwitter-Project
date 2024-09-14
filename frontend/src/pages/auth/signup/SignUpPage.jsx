@@ -55,6 +55,10 @@ const SignUpPage = () => {
       toast.error("Please provide all required fields", { id: "signup" });
       return;
     }
+    if (formData.username.includes(" ")) {
+      toast.error("Username cannot contain spaces", { id: "signup" });
+      return;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("Invalid email address format", { id: "signup" });

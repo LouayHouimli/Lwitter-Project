@@ -55,8 +55,8 @@ const Settings = () => {
   return (
     <>
       <div className="flex-[4_4_0] border-l border-r border-gray-700 min-h-screen">
-        <div className="flex flex-row gap-4 p-4 leading-none">
-          <div className="mockup-browser bg-base-300 border w-full h-full select-none">
+        <div className="flex flex-row gap-4 p-4 leading-none ">
+          <div className="mockup-browser bg-base-300 border w-full h-full select-none  ">
             <div className="mockup-browser-toolbar">
               <div className="input">
                 https://lwitter.com/settings?{authUser.username}
@@ -79,7 +79,10 @@ const Settings = () => {
                 <span className="flex flex-col gap-4 justify-center items-center">
                   <div className="avatar">
                     <div className="mask mask-hexagon w-24">
-                      <img src={authUser.profileImg} alt="Profile" />
+                      <img
+                        src={authUser.profileImg || "/avatar-placeholder.png"}
+                        alt="Profile"
+                      />
                     </div>
                   </div>
                   <table className="table w-full gap-1 font-bold">
@@ -196,13 +199,39 @@ const Settings = () => {
                 name="my_tabs_2"
                 role="tab"
                 className="tab"
-                aria-label="Tab 3"
+                aria-label="Security"
               />
               <div
                 role="tabpanel"
                 className="tab-content bg-base-100 border-base-300 rounded-box p-6"
               >
-                Tab content 3
+                <div className="collapse collapse-arrow bg-base-200">
+                  <input type="radio" name="my-accordion-2" defaultChecked />
+                  <div className="collapse-title text-xl font-medium">
+                    Click to open this one and close others
+                  </div>
+                  <div className="collapse-content">
+                    <p>hello</p>
+                  </div>
+                </div>
+                <div className="collapse collapse-arrow bg-base-200">
+                  <input type="radio" name="my-accordion-2" />
+                  <div className="collapse-title text-xl font-medium">
+                    Click to open this one and close others
+                  </div>
+                  <div className="collapse-content">
+                    <p>hello</p>
+                  </div>
+                </div>
+                <div className="collapse collapse-arrow bg-base-200">
+                  <input type="radio" name="my-accordion-2" />
+                  <div className="collapse-title text-xl font-medium">
+                    Click to open this one and close others
+                  </div>
+                  <div className="collapse-content">
+                    <p>hello</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

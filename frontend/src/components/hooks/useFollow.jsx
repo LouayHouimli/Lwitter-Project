@@ -19,6 +19,8 @@ const useFollow = () => {
           queryClient.invalidateQueries({ queryKey: ["authUser"] });
           queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] });
           queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+          queryClient.invalidateQueries({ queryKey: ["userFollowers"] });
+          queryClient.invalidateQueries({ queryKey: ["userFollowing"] });
           }
         return data;
       } catch (error) {

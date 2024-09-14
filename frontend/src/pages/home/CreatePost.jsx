@@ -72,11 +72,12 @@ const CreatePost = () => {
     setText(inputText);
 
     const formatted = inputText.replace(
-      /(^|\s)(#[a-zA-Z\d-]+)/g,
-      '$1<span class="text-primary">$2</span>'
+      /(^|\s)([@#][a-zA-Z\d_]+)/g,
+      '$1<span class="text-primary font-light">$2</span>'
     );
     setFormattedText(formatted);
   };
+
 
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">

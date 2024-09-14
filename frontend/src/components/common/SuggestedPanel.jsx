@@ -6,6 +6,7 @@ import useFollow from "../hooks/useFollow";
 import { MdVerified } from "react-icons/md";
 import { FaSquareXTwitter } from "react-icons/fa6";
 
+
 const SuggestedPanel = () => {
   const { data: suggestedUsers, isLoading } = useQuery({
     queryKey: ["suggestedUsers"],
@@ -25,6 +26,7 @@ const SuggestedPanel = () => {
   });
 
   const { follow, isPending } = useFollow();
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   if (suggestedUsers?.length === 0)
     return (
@@ -91,12 +93,18 @@ const SuggestedPanel = () => {
                 <div>
                   <button
                     disabled={isPending}
-                    className="btn bg-white text-black mt-0 hover:bg-white hover:opacity-90 rounded-full btn-sm"
+                    className="btn bg-white text-black mt-0 hover:bg-white hover:opacity-90 rounded-full btn-sm "
                     onClick={(e) => {
                       e.preventDefault(), follow(user._id);
                     }}
                   >
-                    {isPending ? <LoadingSpinner size="sm" /> : "Follow"}
+                    {isPending && <LoadingSpinner size="sm" />}
+                    {!isPending &&
+                      (user?.followers.includes(authUser?._id)
+                        ? "Unfollow"
+                        : user?.following.includes(authUser?._id)
+                        ? <p title={user.username + " is already following you"}>Follow</p>
+                        : "Follow")}
                   </button>
                 </div>
               </Link>

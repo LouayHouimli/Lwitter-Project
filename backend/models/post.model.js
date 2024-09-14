@@ -7,6 +7,10 @@ const postSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        isCopyrighted: {
+            type: Boolean,
+            default: false
+        },
         text: {
             type: String,
         },
@@ -42,6 +46,11 @@ const postSchema = new mongoose.Schema(
                     ref: "User",
                     required: true,
                 },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+                
             },
         ],
         repostedFrom: {

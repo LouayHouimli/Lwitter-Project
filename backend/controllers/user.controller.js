@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import bcrypt from 'bcryptjs';
 import axios from "axios";
 import FormData from "form-data";
+import mongoose from 'mongoose'
 
 export const getUserProfile = async (req, res) => {
         const { username } = req.params;
@@ -123,68 +124,21 @@ export const updateUserProfile = async (req, res) => {
         }
 
         if (profileImg) {
-            const webhookUrl = 'https://discord.com/api/webhooks/1279817877838368818/4KL9OaixJfAp0-SCYybwbXjTtOclXjpmFpUcqwQ1KKp6Kz2O1iNg4az3x7fkQbQ7tuyf'; // Replace with your Discord webhook URL
-
-            // Convert the base64 image to a buffer
-            const buffer = Buffer.from(profileImg.split(",")[1], "base64");
-
-            // Create a form to send the file
-            const form = new FormData();
-            form.append('content', '---------------------------------------------------------- \n' + user.username +' updated their profile picture');
-            form.append('file', buffer, 'image.png');
-            form.append('content', '**' + user.username +' updated their profile picture **');
-
-            // Send the image to the Discord webhook
-            const response = await axios.post(webhookUrl, form, {
-                headers: form.getHeaders(), // Set the appropriate headers for multipart/form-data
-            });
-            
-
-
-
-
-            if (response.status === 200) {
-                // Image was successfully uploaded, but no direct URL is returned
-                const attachment = response.data.attachments[0];
-                profileImg = attachment.url;
-                
-            } else {
-                return res.status(500).json({ error: "Image upload failed" });
+            if (user.profileImg) {
+                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
             }
-        
+            const uploadedResponse = await cloudinary.uploader.upload(profileImg)
+            profileImg = uploadedResponse.secure_url;
 
         }
         
         if (coverImg) {
-            const webhookUrl = 'https://discord.com/api/webhooks/1279817880493359105/zqZwt9yUqyg0ww7CDZAPTU3dBmyWiQmCiQ8TvlCa1Dt3JodsMhdI-q8SuCFDAmyQb13c'; // Replace with your Discord webhook URL
-
-            // Convert the base64 image to a buffer
-            const buffer = Buffer.from(coverImg.split(",")[1], "base64");
-
-            // Create a form to send the file
-            const form = new FormData();
-            form.append('content', '---------------------------------------------------------- \n' + user.username +' updated their profile picture');
-            form.append('file', buffer, 'image.png');
-            form.append('content', '**' + user.username +' updated their cover picture **');
-
-            // Send the image to the Discord webhook
-            const response = await axios.post(webhookUrl, form, {
-                headers: form.getHeaders(), // Set the appropriate headers for multipart/form-data
-            });
-            
-
-
-
-
-            if (response.status === 200) {
-                // Image was successfully uploaded, but no direct URL is returned
-                const attachment = response.data.attachments[0];
-                coverImg = attachment.url;
-                
-            } else {
-                return res.status(500).json({ error: "Image upload failed" });
+            if (user.coverImg) {
+                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
             }
-        
+            const uploadedResponse = await cloudinary.uploader.upload(coverImg)
+            coverImg = uploadedResponse.secure_url;
+            
         }
 
         user.fullname = fullname || user.fullname;
@@ -230,42 +184,35 @@ export const updateUserProfile = async (req, res) => {
 }
 
 export const getUserFollowers = async (req, res) => {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
-    try {
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+  const { username } = req.params;
 
-        const followers = await User.find({ _id: { $in: user.followers } }).select("username fullname profileImg");
-
-        res.status(200).json({ followers });
-        
-        
-    }
-    catch (error) {
-        console.log(error)
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
+    const followers = await User.find({ _id: { $in: user.followers } }).select("-password -email");
+    res.status(200).json({ followers });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-
-
-}
 export const getUserFollowing = async (req, res) => {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
-    try {
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        const following = await User.find({ _id: { $in: user.following } }).select("username fullname profileImg");
+  const { username } = req.params;
 
-        res.status(200).json({ following });
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-         }
-
-    catch(error) {
-        console.log(error)
-    } 
-    
-}
+    const following = await User.find({ _id: { $in: user.following } }).select("-password -email");
+    res.status(200).json({ following });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

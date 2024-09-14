@@ -20,10 +20,12 @@ import XSvg from "../../components/svgs/X";
 import User from "../../components/common/User";
 
 const ProfilePage = () => {
+  
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
   const queryClient = useQueryClient();
+  
   // const { data: user } = useQuery({ queryKey: ["authUser"] });
 
   const coverImgRef = useRef(null);
@@ -54,44 +56,51 @@ const ProfilePage = () => {
       }
     },
   });
-  const memberSince = formatMembershipDate(user?.createdAt);
-  const isMyProfile = authUser?._id === user?._id;
 
-   const {
-     data: followersUser,
-   } = useQuery({
-     queryKey: ["followers"],
-     queryFn: async () => {
-       try {
-         
-         const res = await fetch(`/api/users/followers/${user?._id}`);
-         const data = await res.json();
-         if (!res.ok) {
-           throw new Error(data.message);
-         }
-
-         return data;
-       } catch (error) {
-         console.log(error);
-       }
-     },
-   });
-  const { data: followingUser } = useQuery({
-    queryKey: ["following"],
+  const {
+    data: userFollowers,
+    refetch: refetchUserFollowers,
+  } = useQuery({
+    queryKey: ["userFollowers"],
     queryFn: async () => {
       try {
-        const res = await fetch(`/api/users/following/${user?._id}`);
+        const res = await fetch(`/api/users/followers/${username}`);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message);
         }
-
         return data;
       } catch (error) {
         console.log(error);
       }
     },
   });
+
+   const { data: userFollowing, refetch: refetchUserFollowing } = useQuery({
+     queryKey: ["userFollowing"],
+     queryFn: async () => {
+       try {
+         const res = await fetch(`/api/users/following/${username}`);
+         const data = await res.json();
+         if (!res.ok) {
+           throw new Error(data.message);
+         }
+         return data;
+       } catch (error) {
+         console.log(error);
+       }
+     },
+   });
+  useEffect(() => {
+    refetchUserFollowers();
+    refetchUserFollowing();
+  }, [username]);
+
+
+
+  const memberSince = formatMembershipDate(user?.createdAt);
+  const isMyProfile = authUser?._id === user?._id;
+
 
   const {
     mutate: updateProfile,
@@ -167,14 +176,22 @@ const ProfilePage = () => {
               ✕
             </button>
           </form>
-          <h3 className="font-bold text-lg">Following</h3>
-          {followingUser?.length ? (
-            followingUser.map((following) => (
-              <User key={following._id} user={following} />
-            ))
-          ) : (
-            <p className="py-4">No following users found.</p>
-          )}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-bold text-lg">Following</h3>
+            <div className="flex flex-col gap-3  ">
+              {userFollowing?.following.length === 0 && (
+                <p className="text-center text-lg mt-4 font-bold">
+                  {isMyProfile
+                    ? "You Are Not Following Anyone Yet 😢"
+                    : user?.username + " Is Not Following Anyone Yet 😢 "}
+                </p>
+              )}
+              {userFollowing?.following.length !== 0 &&
+                userFollowing?.following.map((user) => (
+                  <User key={user._id} user={user} />
+                ))}
+            </div>
+          </div>
         </div>
       </dialog>
 
@@ -185,14 +202,22 @@ const ProfilePage = () => {
               ✕
             </button>
           </form>
-          <h3 className="font-bold text-lg">Followers</h3>
-          {followersUser?.length ? (
-            followersUser.map((follower) => (
-              <User key={follower._id} user={follower} />
-            ))
-          ) : (
-            <p className="py-4">No followers found.</p>
-          )}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-bold text-lg">Followers</h3>
+            <div className="flex flex-col gap-3  ">
+              {userFollowers?.followers.length === 0 && (
+                <p className="text-center text-lg mt-4 font-bold">
+                  {isMyProfile
+                    ? "You Have No Followers Yet 😢"
+                    : user?.username + " Has No Followers Yet 😢 "}
+                </p>
+              )}
+              {userFollowers?.followers.length !== 0 &&
+                userFollowers?.followers.map((user) => (
+                  <User key={user._id} user={user} />
+                ))}
+            </div>
+          </div>
         </div>
       </dialog>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
@@ -276,9 +301,12 @@ const ProfilePage = () => {
                     onClick={() => follow(user?._id)}
                   >
                     {isPending && <LoadingSpinner size="sm" />}
-                    {!isPending && user.followers.includes(authUser?._id)
-                      ? "Unfollow"
-                      : "Follow"}
+                    {!isPending &&
+                      (user?.followers.includes(authUser?._id)
+                        ? "Unfollow"
+                        : user?.following.includes(authUser?._id)
+                        ? "Follow Back"
+                        : "Follow")}
                   </button>
                 )}
                 {(coverImg || profileImg) && !isSuccess && (
@@ -300,7 +328,7 @@ const ProfilePage = () => {
                     <span className="font-bold text-lg flex items-center">
                       <span className="mt-0.5 ">{user?.fullname}</span>
 
-                      <span className="flex flex-row gap-1"> 
+                      <span className="flex flex-row gap-1">
                         {user?.isVerified && (
                           <MdVerified
                             className="text-blue-500 ml-1 align-middle cursor-pointer" // Ensure alignment
@@ -311,7 +339,7 @@ const ProfilePage = () => {
                         {user?.isMod && (
                           <FaSquareXTwitter
                             title="Lwitter Mod"
-                            className="cursor-pointer "
+                            className="cursor-pointer  "
                           />
                         )}
                       </span>
