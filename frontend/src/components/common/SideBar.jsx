@@ -9,7 +9,7 @@ import { BiLogOut } from "react-icons/bi";
 import { FaBookmark } from "react-icons/fa6";
 import { FaMessage } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import { MdDarkMode } from "react-icons/md";
+import { MdAdminPanelSettings, MdDarkMode } from "react-icons/md";
 import { IoSettingsSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -62,7 +62,6 @@ const Sidebar = () => {
           <Link to="/" className="flex justify-center md:justify-start">
             <FaXTwitter className="px-2 w-12 h-12 rounded-full " />
           </Link>
-        
 
           {/* <button onClick={toggleTheme}>Theme</button> */}
         </div>
@@ -84,6 +83,7 @@ const Sidebar = () => {
             >
               <FaSearch className="w-7 h-6" />
               <span className="text-lg hidden md:block">Explore</span>
+              
             </Link>
           </li>
 
@@ -94,7 +94,7 @@ const Sidebar = () => {
             >
               <div className="indicator">
                 {notifications?.length > 0 && (
-                  <span className="indicator-item badge badge-primary rounded-full w-6">
+                  <span className="indicator-item badge  badge-primary border-1  rounded-full w-6 h-4" >
                     {notifications?.length > 9 ? "9+" : notifications?.length}
                   </span>
                 )}
@@ -159,6 +159,17 @@ const Sidebar = () => {
               <span className="text-lg hidden md:block">Settings</span>
             </Link>
           </li>
+          {data?.isMod && (
+            <li className="flex justify-center md:justify-start">
+              <Link
+                to="/modpanel"
+                className="flex gap-3 items-center hover:bg-primary transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+              >
+                <MdAdminPanelSettings className="w-7 h-7" />
+                <span className="text-lg hidden md:block">Mod</span>
+              </Link>
+            </li>
+          )}
         </ul>
         {data && (
           <Link
@@ -174,7 +185,6 @@ const Sidebar = () => {
               <div className="hidden md:block">
                 <p className=" font-bold text-sm w-20 truncate">
                   {data?.fullname}
-                  
                 </p>
                 <p className=" text-sm">@{data?.username}</p>
               </div>

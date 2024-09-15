@@ -79,10 +79,14 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isLocked: {
+        type: Boolean,
+        default: false
+    },
     Settings: {
         Appearance: {
             type: String,
-            enum: ["retro", "dark","synthwave","valentine"],
+            enum: ["retro", "dark","synthwave","valentine","lofi","lemonade"],
             default: "retro"
         }
 }

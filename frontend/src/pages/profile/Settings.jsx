@@ -150,7 +150,7 @@ const Settings = () => {
                           type="radio"
                           name="theme-dropdown"
                           className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                          aria-label="Retro"
+                          aria-label="Retro 📀"
                           value="retro"
                           onChange={(e) => handleThemeChange(e.target.value)}
                           checked={theme === "retro"}
@@ -161,7 +161,7 @@ const Settings = () => {
                           type="radio"
                           name="theme-dropdown"
                           className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                          aria-label="Dark"
+                          aria-label="Dark 🖤"
                           value="dark"
                           onChange={(e) => handleThemeChange(e.target.value)}
                           checked={theme === "dark"}
@@ -172,7 +172,7 @@ const Settings = () => {
                           type="radio"
                           name="theme-dropdown"
                           className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                          aria-label="Synthwave"
+                          aria-label="Synthwave 💜"
                           value="synthwave"
                           onChange={(e) => handleThemeChange(e.target.value)}
                           checked={theme === "synthwave"}
@@ -183,7 +183,18 @@ const Settings = () => {
                           type="radio"
                           name="theme-dropdown"
                           className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
-                          aria-label="Valentine"
+                          aria-label="Lemonade 🍋"
+                          value="lemonade"
+                          onChange={(e) => handleThemeChange(e.target.value)}
+                          checked={theme === "lemonade"}
+                        />
+                      </li>
+                      <li>
+                        <input
+                          type="radio"
+                          name="theme-dropdown"
+                          className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+                          aria-label="Valentine 💘"
                           value="valentine"
                           onChange={(e) => handleThemeChange(e.target.value)}
                           checked={theme === "valentine"}

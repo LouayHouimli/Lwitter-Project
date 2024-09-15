@@ -294,11 +294,11 @@ export const getLikedPosts = async (req, res) => {
             .sort({ createdAt: -1 })
             .populate({
                 path: "user",
-                select: "fullname username profileImg",
+                select: "-password -email",
             })
             .populate({
                 path: "comments.user",
-                select: "fullname username profileImg",
+                select: "password -email",
             });
 
         if (posts.length === 0) {

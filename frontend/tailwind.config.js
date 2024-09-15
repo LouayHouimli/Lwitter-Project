@@ -15,6 +15,8 @@ export default {
       "dark", 
       "synthwave",
       "valentine",
+      "lofi",
+      "lemonade",
       // Include the retro theme from DaisyUI
       {
         black: {

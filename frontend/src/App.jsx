@@ -16,6 +16,7 @@ import Messages from "./pages/messages/messages";
 import { useEffect } from "react";
 import PostPreview from "./pages/post/PostPreview";
 import { useState } from "react";
+import ModPanel from "./pages/mod/mod";
 
 function App() {
   const [theme, setTheme] = useState("retro"); // Initial theme
@@ -89,9 +90,9 @@ function App() {
     <div className="flex max-w-6xl mx-auto ">
       <Toaster />
 
-        {authUser && (
-          <Sidebar username={authUser.username} fullName={authUser.fullname} />
-        )}
+      {authUser && (
+        <Sidebar username={authUser.username} fullName={authUser.fullname} />
+      )}
 
       <Routes>
         <Route
@@ -100,6 +101,7 @@ function App() {
             authUser ? <Navigate to="/home" /> : <Navigate to="/login" />
           }
         />
+
         <Route
           path="/notifications"
           element={!authUser ? <Navigate to="/login" /> : <NotificationPage />}
@@ -147,6 +149,10 @@ function App() {
         <Route
           path="/messages"
           element={!authUser ? <Navigate to="/login" /> : <Messages />}
+        />
+        <Route
+          path="/modpanel"
+          element={authUser?.isMod ? <ModPanel /> : <Navigate to="/" />}
         />
       </Routes>
 

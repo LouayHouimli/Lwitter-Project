@@ -128,6 +128,30 @@ const Post = ({ post }) => {
       toast.error("Something went wrong");
     },
   });
+  // Mod Section
+  const { mutate: CopyrightPost } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/mod/copyrightContent/${post._id}`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+        return data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  });
+
   const { mutate: bookmarkPost, isPending: isBookMarking } = useMutation({
     mutationFn: async () => {
       try {
@@ -217,7 +241,11 @@ const Post = ({ post }) => {
           </Link>
         );
       }
-      if (/^(https?:\/\/)?[a-zA-Z\d-]+\.[a-zA-Z]{2,}(\/\S*)?$/.test(part)) {
+      if (
+        /^(https?:\/\/)?([a-zA-Z\d-]+\.)*[a-zA-Z\d-]+\.[a-zA-Z]{2,}(\/\S*)?$/.test(
+          part
+        )
+      ) {
         // Ensure the part starts with "http://" or "https://"
         const fullLink =
           part.startsWith("https://") || part.startsWith("http://")
@@ -241,12 +269,11 @@ const Post = ({ post }) => {
         );
       }
 
+
       // Return the part unchanged if it's neither a hashtag nor a mention
       return part;
     });
   };
-
-
 
   return (
     <>
@@ -310,9 +337,7 @@ const Post = ({ post }) => {
                         <a
                           className="  "
                           onClick={() => {
-                            toast.error(
-                              "Copyrighting Post Feature coming soon"
-                            );
+                            CopyrightPost();
                           }}
                         >
                           {" "}
@@ -350,8 +375,9 @@ const Post = ({ post }) => {
             {!post.isCopyrighted && <p>{renderText(post.text)}</p>}
             {post.isCopyrighted && (
               <div
-                className="h-[500px] object-cover rounded-lg bg-primary bg-opacity-20 border border-gray-700 cursor-pointer flex justify-center items-center select-none"
+                className="h-[500px] object-cover rounded-lg bg-primary bg-opacity-20 border border-gray-700 cursor-not-allowed flex justify-center items-center select-none"
                 title="Copyrighted Content"
+                disabled
               >
                 <p className="font-bold">Copyrighted Content</p>
               </div>

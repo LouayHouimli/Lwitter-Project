@@ -163,9 +163,73 @@ const ProfilePage = () => {
     }
   };
   useEffect(() => {
-    document.title = `Profile - ${user?.fullname}`;
+    document.title = `${user?.fullname} (@${username}) / X`;
     refetch();
   }, [username, refetch, user]);
+
+
+  const renderText = (text) => {
+    const parts = text.split(/(\s+)/); // Split by spaces to retain the spaces in the result
+
+    return parts.map((part, index) => {
+      // Handle hashtags
+      if (part.startsWith("#") && /^[#a-zA-Z\d_]+$/.test(part)) {
+        const tag = part.slice(1); // Remove the '#' for the link
+        return (
+          <Link
+            key={index}
+            to={`/explore/${tag}`}
+            className="text-primary inline"
+          >
+            {part}
+          </Link>
+        );
+      }
+      // Handle mentions
+      if (part.startsWith("@") && /^[@a-zA-Z\d_]+$/.test(part)) {
+        const username = part.slice(1); // Remove the '@' for the link
+        return (
+          <Link
+            key={index}
+            to={`/profile/${username}`}
+            className="text-primary inline"
+          >
+            {part}
+          </Link>
+        );
+      }
+      if (
+        /^(https?:\/\/)?([a-zA-Z\d-]+\.)*[a-zA-Z\d-]+\.[a-zA-Z]{2,}(\/\S*)?$/.test(
+          part
+        )
+      ) {
+        // Ensure the part starts with "http://" or "https://"
+        const fullLink =
+          part.startsWith("https://") || part.startsWith("http://")
+            ? part
+            : "https://" + part; // Default to "https://" if no protocol is provided
+
+        // Slice off the protocol for display purposes
+        const slicedPart = fullLink.startsWith("https://")
+          ? fullLink.slice(8)
+          : fullLink.slice(7);
+
+        return (
+          <a
+            key={index}
+            className="text-primary inline"
+            target="_blank"
+            href={fullLink + "?lwitterclick=" + Date.now()} // Append the tracking parameter
+          >
+            {slicedPart}
+          </a>
+        );
+      }
+
+      // Return the part unchanged if it's neither a hashtag nor a mention
+      return part;
+    });
+  };
 
   return (
     <>
@@ -349,7 +413,7 @@ const ProfilePage = () => {
                     @{user?.username}
                   </span>
 
-                  <span className="text-sm my-1">{user?.bio}</span>
+                  <span className="text-sm my-1">{renderText(user?.bio)}</span>
                 </div>
 
                 <div className="flex gap-2 flex-wrap">
@@ -370,9 +434,15 @@ const ProfilePage = () => {
                   )}
                   <div className="flex gap-2 items-center">
                     <IoCalendarOutline className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm text-slate-500">
-                      {memberSince}
-                    </span>
+                    {user?.username == "loumask" ? (
+                      <span className="text-sm text-slate-500">
+                        Joined Chemk F Zebi
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-500">
+                        {memberSince}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -422,8 +492,10 @@ const ProfilePage = () => {
               </div>
             </>
           )}
-
-          <Posts feedType={feedType} username={username} userId={user?._id} />
+          {user?.isLocked && !isMyProfile && <div>Locked Profile</div>}
+          {!user?.isLocked && (
+            <Posts feedType={feedType} username={username} userId={user?._id} />
+          )}
         </div>
       </div>
     </>

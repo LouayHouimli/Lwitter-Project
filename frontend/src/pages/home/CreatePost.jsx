@@ -1,20 +1,26 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, Suspense } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoCloseSharp } from "react-icons/io5";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
+// Lazy load the Emoji Picker component
+const EmojiPicker = React.lazy(() => import("emoji-picker-react"));
+
 const CreatePost = () => {
   const [text, setText] = useState("");
   const [formattedText, setFormattedText] = useState("");
+  const [isEmojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [img, setImg] = useState(null);
   const queryClient = useQueryClient();
-
   const imgRef = useRef(null);
+  const emojiPickerRef = useRef(null); // Ref for the emoji picker
 
+  // Fetching authenticated user data
   const { data } = useQuery({ queryKey: ["authUser"] });
 
+  // Mutation for creating a post
   const {
     mutate: createPostMutation,
     isPending,
@@ -43,6 +49,7 @@ const CreatePost = () => {
     },
   });
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!text && !img) {
@@ -56,6 +63,7 @@ const CreatePost = () => {
     setFormattedText("");
   };
 
+  // Handle image file change
   const handleImgChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -67,6 +75,12 @@ const CreatePost = () => {
     }
   };
 
+  // Handle emoji picker click
+  const handleEmojiClick = (emojiObject) => {
+    setText((prevInput) => prevInput + emojiObject.emoji);
+  };
+
+  // Handle text input change and format mentions/hashtags
   const handleTextChange = (e) => {
     const inputText = e.target.value;
     setText(inputText);
@@ -78,12 +92,34 @@ const CreatePost = () => {
     setFormattedText(formatted);
   };
 
+  // Click outside emoji picker to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
+        setEmojiPickerVisible(false); // Hide the emoji picker
+      }
+    };
+
+    // Attach the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [emojiPickerRef]);
 
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
-        <div className="w-8 rounded-full ">
-          <img src={data.profileImg || "/avatar-placeholder.png"} />
+        <div className="w-8 rounded-full">
+          <img
+            src={data?.profileImg || "/avatar-placeholder.png"}
+            alt="avatar"
+          />
         </div>
       </div>
       <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
@@ -112,6 +148,7 @@ const CreatePost = () => {
             <img
               src={img}
               className="w-full mx-auto h-72 object-contain rounded"
+              alt="preview"
             />
           </div>
         )}
@@ -122,7 +159,23 @@ const CreatePost = () => {
               className="fill-primary w-6 h-6 cursor-pointer"
               onClick={() => imgRef.current.click()}
             />
-            <BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
+            <div className="relative">
+              <BsEmojiSmileFill
+                className="fill-primary w-5 h-5 cursor-pointer"
+                onClick={() => setEmojiPickerVisible(!isEmojiPickerVisible)}
+              />
+
+              {isEmojiPickerVisible && (
+                <div
+                  className="absolute z-10 top-full"
+                  ref={emojiPickerRef} // Attach ref to the emoji picker
+                >
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <EmojiPicker onEmojiClick={handleEmojiClick} />
+                  </Suspense>
+                </div>
+              )}
+            </div>
           </div>
           <input
             type="file"
