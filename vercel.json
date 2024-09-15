@@ -12,8 +12,5 @@
       "dest": "/src/index.js"
     }
   ],
-  "env": {
-    "REACT_APP_API_KEY": "@your-env-var",
-    "REACT_APP_AUTH_DOMAIN": "@your-env-var"
-  }
+ 
 }
