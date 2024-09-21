@@ -8,34 +8,41 @@ import sharp from "sharp";
 
 export const createPost = async (req, res) => {
     try {
-        const { text, img } = req.body;
-        const userId = req.user._id;
+        const { text } = req.body;
+        let { img } = req.body; // Base64 encoded image string
+        const userId = req.user._id.toString();
+
+        if (!userId) {
+            return res.status(401).json({ message: "User not found" });
+        }
 
         if (!text && !img) {
             return res.status(400).json({ message: "Text or Image is required" });
         }
 
-        let imageUrl;
         if (img) {
-            const uploadedResponse = await cloudinary.v2.uploader.upload(img);
-            imageUrl = uploadedResponse.url;
+
+            const uploadedResponse = await cloudinary.v2.uploader.upload(img)
+            img = uploadedResponse.url
+
         }
 
         const newPost = new Post({
             user: userId,
-            text,
-            img: imageUrl,
+            text: text,
+            img: img,
         });
 
         await newPost.save();
         res.status(201).json(newPost);
+
     } catch (error) {
-        console.error("Error in createPost:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        console.log("error in createPost from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
     }
 }
-
 export const deletePost = async (req, res) => {
+
     const postId = req.params.id;
     const userId = req.user._id.toString();
     try {
@@ -53,6 +60,7 @@ export const deletePost = async (req, res) => {
             return res.status(401).json({ message: "You can only delete your own posts or by mods" });
         }
 
+
         if (post.img) {
             const imgId = post.img.split("/").pop().split(".")[0];
             await cloudinary.v2.uploader.destroy(imgId);    
@@ -60,12 +68,17 @@ export const deletePost = async (req, res) => {
 
         await Post.findByIdAndDelete(postId);
         res.status(200).json({ message: "Post deleted successfully" });
-    } catch (error) {
-        console.error("Error in deletePost:", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}
 
+
+
+    }
+    catch (error) {
+        console.log("error in deletePost from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+
+} 
 export const likeUnlikePost = async (req, res) => {
     const postId = req.params.id;
     const userId = req.user._id.toString();
@@ -107,12 +120,11 @@ export const likeUnlikePost = async (req, res) => {
         
          }
         catch (error) {
-            console.error("Error in likeUnlikePost:", error.message);
-            res.status(500).json({ error: "Internal server error" });
+            console.log("error in likeUnlikePost from post.controller.js", error.message);
+            res.status(500).json({ error: error.message });
     }
     
 }  
-
 export const commentOnPost = async (req, res) => {
   const postId = req.params.id;
   const userId = req.user._id.toString();
@@ -156,11 +168,10 @@ export const commentOnPost = async (req, res) => {
 
     return res.status(200).json(updatedPost.comments);
   } catch (error) {
-    console.error("Error in commentOnPost:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.log("error in commentOnPost from post.controller.js", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
-
 export const deleteComment = async (req, res) => {
     const postId = req.params.postId;
     const commentId = req.params.commentId;
@@ -187,12 +198,18 @@ export const deleteComment = async (req, res) => {
         await post.updateOne({ $pull: { comments: { _id: commentId } } });
         await Notification.deleteMany({ sender: userId, receiver: post.user, type: "comment" });
         res.status(200).json({ message: "Comment deleted successfully" });
-    } catch (error) {
-        console.error("Error in deleteComment:", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}
 
+
+
+    }
+    catch (error) {
+        console.log("error in deleteComment from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+     
+
+}
 export const getAllPosts = async (req, res) => {
     try {
         const posts = await Post.find()
@@ -221,12 +238,12 @@ export const getAllPosts = async (req, res) => {
 
         // Send the posts
         res.status(200).json(posts);
+
     } catch (error) {
-        console.error("Error in getAllPosts:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        console.log("error in getAllPosts from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
     }
 };
-
 export const getPost = async (req, res) => {
     try {
         const post = await Post.findOne({ _id: req.params.id })
@@ -259,12 +276,12 @@ export const getPost = async (req, res) => {
 
         // Send the posts
         res.status(200).json(post);
+
     } catch (error) {
-        console.error("Error in getPost:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        console.log("error in getPost from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
     }
 };
-
 export const getLikedPosts = async (req, res) => { 
     const userId = req.params.id;
     try {
@@ -289,12 +306,12 @@ export const getLikedPosts = async (req, res) => {
         }
 
         res.status(200).json(posts);
+
     } catch (error) {
-        console.error("Error in getLikedPosts:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        console.log("Error in getLikedPosts from post.controller.js:", error.message);
+        res.status(500).json({ error: error.message });
     }
 };
-
 export const getFollowingPosts = async (req, res) => {
     const userId = req.user._id;
     try {
@@ -313,12 +330,14 @@ export const getFollowingPosts = async (req, res) => {
             return res.status(200).json([]);
         }
         res.status(200).json(posts);
-    } catch (error) {
-        console.error("Error in getFollowingPosts:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        
     }
-}
+    catch (error) {
+        console.log("error in getFollowingPosts from post.controller.js", error.message);   
+        res.status(500).json({ error: error.message });
+    }
 
+}
 export const getUserPosts = async (req, res) => {
     const username = req.params.username;
     try {
@@ -337,12 +356,13 @@ export const getUserPosts = async (req, res) => {
             return res.status(200).json([]);
         }
         res.status(200).send(posts);
-    } catch (error) {
-        console.error("Error in getUserPosts:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        
+    }
+    catch (error) {
+        console.log("error in getUserPosts from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
     }
 }
-
 export const getSearchResults = async (req, res) => {
     const searchTerm = req.query.q || ""; // Extract the 'q' query parameter
 
@@ -369,9 +389,10 @@ export const getSearchResults = async (req, res) => {
         }
 
         res.status(200).json(posts);
+
     } catch (error) {
-        console.error("Error in getSearchResults:", error.message);
-        res.status(500).json({ error: "Internal server error" });
+        console.log("error in getSearchResults from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -394,18 +415,25 @@ export const bookMarkPost = async (req, res) => {
             await user.updateOne({ $pull: { bookmarkedPosts: postId } });
             const updatedBookmarks = post.bookmarks.pull(userId);
             return res.status(200).json(updatedBookmarks);
+            
         } else {
             await post.updateOne({ $push: { bookmarks: userId } });
             await user.updateOne ({$push : {bookmarkedPosts : postId}});
             post.bookmarks.push(userId);
             return res.status(200).json(post.bookmarks);
+            
         }
-    } catch (error) {
-        console.error("Error in bookMarkPost:", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}
+        
 
+        
+    }
+    catch (error) {
+        console.log("error in bookMarkPost from post.controller.js", error.message);
+        res.status(500).json({ error: error.message });
+        
+    }
+    
+}
 export const repostPost = async (req, res) => {
   try {
     const originalPostId = req.params.id;
@@ -432,7 +460,7 @@ export const repostPost = async (req, res) => {
 
     return res.status(200).json(repostedPost);
   } catch (error) {
-    console.error("Error in repostPost:", error.message);
+    console.error(error);
     return res.status(500).json({ error: "Failed to repost" });
   }
 };

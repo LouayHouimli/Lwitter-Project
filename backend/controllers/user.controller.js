@@ -107,7 +107,9 @@ export const updateUserProfile = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Password update logic
+        if (!currentPassword && newPassword || currentPassword && !newPassword) {
+            return res.status(400).json({ message: "Please provide both current and new password" });
+        }
         if (currentPassword && newPassword) {
             const isMatch = await bcrypt.compare(currentPassword, user.password);
             if (!isMatch) {
@@ -121,27 +123,36 @@ export const updateUserProfile = async (req, res) => {
            
         }
 
-        // Image upload logic
         if (profileImg) {
-            profileImg = await uploadImage(profileImg, user.profileImg);
+            if (user.profileImg) {
+                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+            }
+            const uploadedResponse = await cloudinary.uploader.upload(profileImg)
+            profileImg = uploadedResponse.secure_url;
+
         }
+        
         if (coverImg) {
-            coverImg = await uploadImage(coverImg, user.coverImg);
+            if (user.coverImg) {
+                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+            }
+            const uploadedResponse = await cloudinary.uploader.upload(coverImg)
+            coverImg = uploadedResponse.secure_url;
+            
         }
 
-        // Update user fields
-        Object.assign(user, {
-            fullname: fullname || user.fullname,
-            username: username || user.username,
-            bio: bio || user.bio,
-            link: link || user.link,
-            profileImg: profileImg || user.profileImg,
-            coverImg: coverImg || user.coverImg
-        });
-
+        user.fullname = fullname || user.fullname;
+        user.username = username || user.username;
+        user.bio = bio || user.bio;
+        user.link = link || user.link;
+        user.profileImg = profileImg || user.profileImg;
+        user.coverImg = coverImg || user.coverImg;
         await user.save();
+        user.password = null;
         res.status(200).json({ message: "Profile Updated Successfully" });
-    } catch (error) {
+         }
+    
+    catch (error) {
         console.log("error in updateUser from user.controller.js", error.message);
         res.status(500).json({ error: error.message });
     }
@@ -205,12 +216,3 @@ export const getUserFollowing = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// Helper function for image upload
-async function uploadImage(newImage, oldImage) {
-    if (oldImage) {
-        await cloudinary.uploader.destroy(oldImage.split("/").pop().split(".")[0]);
-    }
-    const uploadedResponse = await cloudinary.uploader.upload(newImage);
-    return uploadedResponse.secure_url;
-}
