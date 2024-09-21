@@ -1,6 +1,8 @@
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
+// Copyright (c) 2024 Lwitter Project
+
 export const protectMod = async (req, res, next) => {
 
     try {

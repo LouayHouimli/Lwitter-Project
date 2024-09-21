@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Lwitter Project
 
 import User from "../models/user.model.js";
 
