@@ -30,7 +30,6 @@ const Post = ({ post }) => {
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const isMyPost = authUser._id === postOwner._id;
   const isMod = authUser?.isMod;
-  console.log(isMod);
   const doIReposted = post.reposts.includes(post.user?._id);
 
   const formattedDate = formatPostDate(post.createdAt);
@@ -131,24 +130,28 @@ const Post = ({ post }) => {
   // Mod Section
   const { mutate: CopyrightPost } = useMutation({
     mutationFn: async () => {
-      try {
-        const res = await fetch(`/api/mod/copyrightContent/${post._id}`, {
-          method: "POST",
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
-        }
-        return data;
-      } catch (error) {
-        console.log(error);
+      const res = await fetch(`/api/mod/copyrightContent/${post._id}`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
       }
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    onSuccess: (data) => {
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, isCopyrighted: data.isCopyrighted };
+          }
+          return p;
+        });
+      });
+      toast.success(data.message);
     },
-    onError: () => {
-      toast.error("Something went wrong");
+    onError: (error) => {
+      toast.error(error.message || "Something went wrong");
     },
   });
 

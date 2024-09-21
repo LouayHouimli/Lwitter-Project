@@ -1,37 +1,30 @@
 import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
 
-export const copyrightContent = async (req, res) => {
-    const userId = req.user._id
-    const postId = req.params.id;
+export const copyrightContent = async (req, res, next) => {
     try {
-        const user = await User.findById(userId)
-        if (!user) {
-            return res.status(404).json({ message: "User not found" })
-        }
-        if (!user.isMod) {
-            return res.status(404).json({ message: "User is not a mod" })
+        const [user, post] = await Promise.all([
+            User.findById(req.user._id),
+            Post.findById(req.params.id)
+        ]);
+
+        if (!user?.isMod) {
+            return res.status(403).json({ error: "User not authorized as a moderator" });
         }
 
-        const post = await Post.findById(postId)
         if (!post) {
-            return res.status(404).json({ message: "Post not found" })
+            return res.status(404).json({ error: "Post not found" });
         }
-        if (post.isCopyrighted) {
-            post.isCopyrighted = false
-            await post.save()
-            return res.status(200).json({ message: "Post has not copyright content" })
-        }
-        post.isCopyrighted = true
-        await post.save()
-        res.status(200).json({ message: "Post has copyright content" })
-        
-        
+
+        post.isCopyrighted = !post.isCopyrighted;
+        await post.save();
+
+        const action = post.isCopyrighted ? 'marked' : 'unmarked';
+        res.json({ 
+            message: `Post has been ${action} for copyright content`,
+            isCopyrighted: post.isCopyrighted
+        });
+    } catch (error) {
+        next(error);
     }
-
-    catch (error) { 
-
-        res.status(500).json({ error: error.message })
-    }
-
-}
+};
