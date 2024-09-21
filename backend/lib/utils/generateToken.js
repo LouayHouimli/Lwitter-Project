@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 
+// Copyright (c) 2024 Lwitter Project
 
 export const generateTokens = (userId) => {
     const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {

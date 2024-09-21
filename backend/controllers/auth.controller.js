@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Lwitter Project
 import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import { generateTokens, verifyRefreshToken } from '../lib/utils/generateToken.js';

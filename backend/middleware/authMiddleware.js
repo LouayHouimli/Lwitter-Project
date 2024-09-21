@@ -1,5 +1,7 @@
 import { verifyAccessToken } from '../lib/utils/generateToken.js';
 
+// Copyright (c) 2024 Lwitter Project
+
 export const protect = async (req, res, next) => {
     let token;
 

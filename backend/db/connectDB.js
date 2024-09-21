@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+// Copyright (c) 2024 Lwitter Project
+
 const connectDB = async () => {
     try {   
         const conn = await mongoose.connect(process.env.MONGO_URI);

@@ -1,6 +1,8 @@
 import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
 
+// Copyright (c) 2024 Lwitter Project
+
 export const copyrightContent = async (req, res, next) => {
     try {
         const [user, post] = await Promise.all([
