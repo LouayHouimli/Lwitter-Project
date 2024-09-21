@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
-import { generateTokenAndSetCookie } from '../lib/utils/generateToken.js';
+import { generateTokens, verifyRefreshToken } from '../lib/utils/generateToken.js';
 
 export const signup = async (req, res) => {
     try {
@@ -54,51 +54,89 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-    const {username, password} = req.body;
-    const user = await User.findOne({username});
-    if(!user) {
-        return res.status(404).json({message: "User not found"});
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Username or password is incorrect" });
+        }
+
+        const { accessToken, refreshToken } = generateTokens(user._id);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.status(200).json({
+            accessToken,
+            user: {
+                _id: user._id,
+                username: user.username,
+                fullname: user.fullname,
+                email: user.email,
+                profileImg: user.profileImg,
+                coverImg: user.coverImg,
+                bio: user.bio,
+                followers: user.followers,
+                following: user.following
+            }
+        });
+    } catch (error) {
+        console.error("Error in login:", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
+};
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if(!isMatch) {
-        return res.status(401).json({message: "Username or password is incorrect"});
+export const refreshToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.cookies;
+        if (!refreshToken) {
+            return res.status(401).json({ message: "Refresh token not found" });
+        }
+
+        const userId = verifyRefreshToken(refreshToken);
+        if (!userId) {
+            return res.status(403).json({ message: "Invalid refresh token" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id);
+
+        res.cookie('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.json({ accessToken });
+    } catch (error) {
+        console.error("Error in refreshToken:", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
+};
 
-    generateTokenAndSetCookie(user._id, res);
-
-    res.status(200).json({
-        _id: user._id,
-        username: user.username,
-        fullname: user.fullname,
-        email: user.email,
-        profileImg: user.profileImg,
-        coverImg: user.coverImg,
-        bio: user.bio,
-        followers: user.followers,
-        follwing: user.following
-    })
-        
-    }catch(error) { 
-        console.log("error in login from auth.controller.js", error.message);
-        res.status(500).json({ error: error.message });
-    }
-   
-
-}
 export const logout = async (req, res) => {
-    try
-    {
-    res.cookie("jwt", process.env.JWT_SECRET, { maxAge: 0 });
+    try {
+        res.clearCookie('refreshToken');
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.error("Error in logout:", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 
-    res.status(200).json({ message: "Logged out successfully" });
-    }
-    catch(error) {
-        console.log("error in logout from auth.controller.js", error.message);
-        res.status(500).json({ error: error.message });
-    }
-    
-}
 export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select("-password");
