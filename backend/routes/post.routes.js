@@ -30,8 +30,10 @@ router.post("/repost/:id", protectRoute, repostPost)
 router.get("/explore", protectRoute, getSearchResults);
 router.get("/post/:id",protectRoute, getPost);
 
-// Copyright (c) 2024 Lwitter Project
+
+
 export default router;
+
 
 
 

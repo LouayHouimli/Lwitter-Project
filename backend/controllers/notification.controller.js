@@ -1,7 +1,5 @@
 import Notification from "../models/notification.model.js";
 
-// Copyright (c) 2024 Lwitter Project
-
 export const getAllNotifications = async (req, res) => {
 
     try {

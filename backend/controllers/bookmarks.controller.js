@@ -1,7 +1,5 @@
 import User from "../models/user.model.js";
 
-// Copyright (c) 2024 Lwitter Project
-
 export const getBookmarks = async (req, res) => {
     const userId = req.user._id;
 

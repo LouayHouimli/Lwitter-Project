@@ -1,5 +1,3 @@
-// Copyright (c) 2024 Lwitter Project
-
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({

@@ -272,7 +272,6 @@ const Post = ({ post }) => {
         );
       }
 
-
       // Return the part unchanged if it's neither a hashtag nor a mention
       return part;
     });
@@ -280,13 +279,17 @@ const Post = ({ post }) => {
 
   return (
     <>
-      <div className="flex gap-2 items-start p-4 border-b border-gray-700  ">
+      <div className="flex gap-2 items-start p-4 border-b border-gray-700">
         <div className="avatar">
           <Link
             to={`/profile/${postOwner.username}`}
-            className="w-9 h-9 rounded-full overflow-hidden"
+            className="w-9 h-9 rounded-full overflow-hidden block"
           >
-            <img src={postOwner.profileImg || "/avatar-placeholder.png"} />
+            <img
+              src={postOwner.profileImg || "/avatar-placeholder.png"}
+              alt={`${postOwner.username}'s avatar`}
+              className="w-full h-full object-cover"
+            />
           </Link>
         </div>
         <div className="flex flex-col flex-1">
