@@ -1,78 +1,64 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FaCheckCircle } from "react-icons/fa";
 
-const PaymentSuccess = () => {
+function PaymentSuccess() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isVerifying, setIsVerifying] = useState(true);
 
-  const {
-    mutate: getVerified,
-    isLoading,
-    isError,
-  } = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/users/getVerified", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to verify user.");
-      }
-
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["authUser"]);
-      toast.success("Your account has been verified!");
-      navigate("/");
-    },
-    onError: (error) => {
-      console.error("Error during verification:", error);
-      toast.error("Failed to verify your account. Please contact support.");
-      navigate("/");
-    },
-  });
+  const { data: authUser, refetch } = useQuery({ queryKey: ["authUser"] });
 
   useEffect(() => {
-    getVerified();
-  }, [getVerified]);
+    const verifyUser = async () => {
+      try {
+        const response = await fetch("/api/payments/verify-user", {
+          method: "POST",
+          credentials: "include",
+        });
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen ">
+        if (response.ok) {
+          const result = await response.json();
+          if (result.message === "User verified successfully") {
+            await refetch(); // Refetch the user data
+            setTimeout(() => navigate("/home"), 3000); // Redirect to home after 3 seconds
+          } else {
+            toast.error("Verification failed. Please contact support.");
+          }
+        } else {
+          toast.error("Verification failed. Please contact support.");
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        toast.error("Verification failed. Please try again later.");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    const timer = setTimeout(verifyUser, 5000);
+
+    return () => clearTimeout(timer);
+  }, [refetch, navigate]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen ">
+      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+        <FaCheckCircle className="text-green-500 text-6xl mb-4 mx-auto" />
         <h1 className="text-3xl font-bold mb-4">Payment Successful!</h1>
-        <p className="text-xl mb-8">
-          We're verifying your account. Please wait...
+        <p className="text-xl mb-4">
+          Thank you for your purchase. {isVerifying ? "You will be verified shortly." : "Verification process completed."}
         </p>
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        {!isVerifying && (
+          <p className="text-lg text-gray-600">
+            You will be redirected to the home page in a few seconds...
+          </p>
+        )}
       </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h1 className="text-3xl font-bold mb-4">Verification Failed</h1>
-        <p className="text-xl mb-8">
-          We couldn't verify your account. Please contact support.
-        </p>
-        <button
-          onClick={() => navigate("/")}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Return to Home
-        </button>
-      </div>
-    );
-  }
-
-  return null;
-};
+    </div>
+  );
+}
 
 export default PaymentSuccess;

@@ -6,11 +6,13 @@ import useFollow from "../hooks/useFollow";
 import { MdVerified } from "react-icons/md";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 
 const Subscribe = () => {
   const queryClient = useQueryClient();
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
- 
+  const navigate = useNavigate();
+
   const {
     mutate: createCheckoutSession,
     isLoading,
@@ -39,27 +41,50 @@ const Subscribe = () => {
       toast.error("Failed to start subscription process");
     },
     onSuccess: (data) => {
+      // Redirect to Stripe Checkout
       window.location.href = data.url;
     },
   });
 
+  const handleCheckout = () => {
+    createCheckoutSession();
+  };
+
+  // Commented out the handleFailedPayment function
+  // const handleFailedPayment = () => {
+  //   // Simulate a failed payment by directly navigating to the failure page
+  //   navigate('/payment-failure');
+  // };
+
   return (
     <div className="lg:block">
       <div className="p-3 rounded-md sticky top-2 border-2 border-black max-w-xs">
-        <p className="font-bold mb-2 text-xl">{authUser?.isVerified ? "Welcome" : "Subscribe"} To Lwitter</p>
-        {authUser?.isVerified ? <p className="break-words whitespace-normal text-justify font-medium">
-          You are a verified user, you can now create your own posts and earn revenue from ads.
-          </p> : <p className="break-words whitespace-normal text-justify font-medium">
-          Subscribe to unlock new features and if eligible, receive a share of
-          ads revenue.
-        </p>}
-        {!authUser?.isVerified && <button
-          className="btn btn-primary w-1/3 mt-4 rounded-full text-black"
-          onClick={() => createCheckoutSession()}
-          disabled={isLoading || isPending}
-        >
-          {isLoading || isPending ? <LoadingSpinner /> : "Subscribe"}
-        </button>}
+        <p className="font-bold mb-2 text-xl">
+          {authUser?.isVerified ? "Welcome" : "Subscribe"} To Lwitter
+        </p>
+        {authUser?.isVerified ? (
+          <p className="break-words whitespace-normal text-justify font-medium">
+            You are a verified user, you can now create your own posts and earn
+            revenue from ads.
+          </p>
+        ) : (
+          <p className="break-words whitespace-normal text-justify font-medium">
+            Subscribe to unlock new features and if eligible, receive a share of
+            ads revenue.
+          </p>
+        )}
+        {!authUser?.isVerified && (
+          <>
+            <button
+              className="btn btn-primary w-1/3 mt-4 rounded-full text-black"
+              onClick={handleCheckout}
+              disabled={isLoading || isPending}
+            >
+              {isLoading || isPending ? <LoadingSpinner /> : "Subscribe"}
+            </button>
+            {/* Commented out the Test Failure button */}
+          </>
+        )}
         {isError && <p className="text-red-500 mt-2">{error.message}</p>}
       </div>
     </div>
