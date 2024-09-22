@@ -278,7 +278,7 @@ const Post = ({ post }) => {
   };
 
   return (
-    <>
+    <div>
       <div className="flex gap-2 items-start p-4 border-b border-gray-700">
         <div className="avatar">
           <Link
@@ -347,7 +347,7 @@ const Post = ({ post }) => {
                           }}
                         >
                           {" "}
-                          <FaCopyright className="w-4 h-4" /> Copyright Content
+                          <FaCopyright className="w-4 h-4" /> {post.isCopyrighted ? "Remove Copyright" : "Copyright Content"}
                         </a>
                       )}
                       <a
@@ -543,7 +543,9 @@ const Post = ({ post }) => {
           )}
         </div>
       </div>
-    </>
+
+      
+    </div>
   );
 };
 

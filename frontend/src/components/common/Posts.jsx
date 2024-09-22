@@ -64,7 +64,7 @@ const Posts = ({ feedType, username, userId, searchFiled }) => {
         <p className="text-center my-4">No posts in {feedType}. Switch 👻</p>
       )}
       {!isLoading && !isRefetching && posts && (
-        <div>
+        <div >
           {posts.map((post) => (
             <Post key={post._id} post={post} feedType={feedType} />
           ))}

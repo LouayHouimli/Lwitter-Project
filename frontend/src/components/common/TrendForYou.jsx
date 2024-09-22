@@ -31,8 +31,8 @@ const TrendForYou = () => {
     ];
 
   return (
-    <div className="hidden lg:block my-4 mx-2">
-      <div className="p-4 rounded-md sticky top-2 border-2 border-black">
+    <div className="lg:block">
+      <div className="p-3 rounded-md sticky top-2 border-2 border-black">
         <p className="font-bold mb-3 text-xl">Trends for you</p>
         <div className="flex flex-col gap-4">
           {trends.map((trend, index) => (

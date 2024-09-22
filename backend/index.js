@@ -1,3 +1,9 @@
+import dotenv from 'dotenv';
+dotenv.config(); // This should be the first line
+
+console.log("All environment variables:", Object.keys(process.env));
+console.log("Stripe Secret Key:", process.env.STRIPE_SECRET_KEY); // Debugging line
+
 import express from 'express'
 import authRoutes from './routes/auth.routes.js'
 import userRoutes from './routes/user.routes.js'
@@ -6,13 +12,12 @@ import notificationRoutes from './routes/notification.routes.js'
 import bookmarksRoutes from './routes/bookmarks.routes.js'
 import settingsRoutes from './routes/settings.routes.js'
 import modRoutes from './routes/mod.routes.js'
-import dotenv from 'dotenv'
 import connectMongoDB from './db/connectDB.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
-
-dotenv.config()
+import paymentRoutes from './routes/payment.routes.js'
+import webhookRoutes from './routes/webhook.routes.js'
 
 cloudinary.config({ 
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -24,9 +29,15 @@ cloudinary.config({
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// This should be before any middleware that parses the body
+app.use("/api/webhook", webhookRoutes);
+
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 app.use(cookieParser())
 
 
@@ -37,6 +48,8 @@ app.use("/api/notifications", notificationRoutes)
 app.use("/api/bookmarks", bookmarksRoutes)
 app.use("/api/settings", settingsRoutes)
 app.use("/api/mod", modRoutes)
+app.use("/api/payments", paymentRoutes)
+app.use("/api/webhook", webhookRoutes)
 
 
 app.listen(PORT, (req, res) => {

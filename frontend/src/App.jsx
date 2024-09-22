@@ -17,6 +17,8 @@ import { useEffect } from "react";
 import PostPreview from "./pages/post/PostPreview";
 import { useState } from "react";
 import ModPanel from "./pages/mod/mod";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
 
 function App() {
   const [theme, setTheme] = useState("retro"); // Initial theme
@@ -88,8 +90,6 @@ function App() {
 
   return (
     <div className="flex max-w-6xl mx-auto ">
-      <Toaster />
-
       {authUser && (
         <Sidebar username={authUser.username} fullName={authUser.fullname} />
       )}
@@ -154,9 +154,12 @@ function App() {
           path="/modpanel"
           element={authUser?.isMod ? <ModPanel /> : <Navigate to="/" />}
         />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failure" element={<PaymentFailure />} />
       </Routes>
 
       {authUser && <RightPanel />}
+      <Toaster />
     </div>
   );
 }

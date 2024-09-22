@@ -10,7 +10,7 @@ const useFollow = () => {
         const res = await fetch(`/api/users/follow//${userId}`, {
           method: "POST",
         });
-        
+
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message);
@@ -21,7 +21,7 @@ const useFollow = () => {
           queryClient.invalidateQueries({ queryKey: ["userProfile"] });
           queryClient.invalidateQueries({ queryKey: ["userFollowers"] });
           queryClient.invalidateQueries({ queryKey: ["userFollowing"] });
-          }
+        }
         return data;
       } catch (error) {
         console.log(error);
