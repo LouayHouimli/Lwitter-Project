@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FaCheckCircle, FaHome } from "react-icons/fa";
 import confetti from 'canvas-confetti';
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 function PaymentSuccess() {
   const navigate = useNavigate();
@@ -30,7 +31,6 @@ function PaymentSuccess() {
           const result = await response.json();
           if (result.message === "User verified successfully") {
             await refetch();
-            toast.success("You're now verified!");
             setTimeout(() => navigate("/home"), 5000);
           } else {
             toast.error("Verification failed. Please contact support.");
@@ -52,29 +52,35 @@ function PaymentSuccess() {
   }, [refetch, navigate]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-green-400 to-blue-500">
-      <div className="bg-white p-10 rounded-lg shadow-2xl text-center max-w-md w-full mx-4 transform hover:scale-105 transition-all duration-300">
-        <div className="mb-8 animate-bounce">
-          <FaCheckCircle className="text-green-500 text-9xl mb-4 mx-auto" />
-        </div>
-        <h1 className="text-5xl font-bold mb-6 text-gray-800">Awesome!</h1>
-        <p className="text-2xl mb-8 text-gray-600">
-          {isVerifying 
-            ? "We're verifying your payment. Hold tight!" 
-            : "You're all set! Welcome to the verified club."}
-        </p>
-        {!isVerifying && (
-          <p className="text-lg text-gray-500 mb-8 animate-pulse">
-            Redirecting you to the home page shortly...
+    <div className="flex-[4_4_0] border-l border-r border-gray-700 min-h-screen overflow-hidden flex flex-col">
+      <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-r from-primary to-secondary p-4">
+        <div className="bg-base-100 p-6 rounded-lg shadow-2xl text-center max-w-md w-full mx-auto transform hover:scale-105 transition-all duration-300">
+          <div className="mb-6 animate-bounce">
+            <FaCheckCircle className="text-success text-7xl mb-3 mx-auto" />
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-base-content">Success!</h1>
+          <p className="text-lg mb-6 text-base-content/80">
+            {isVerifying 
+              ? "We're verifying your payment. Hold tight!" 
+              : "You're all set! Welcome to the verified club."}
           </p>
-        )}
-        <button
-          onClick={() => navigate("/home")}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center mx-auto text-xl"
-        >
-          <FaHome className="mr-3" />
-          Go to Home
-        </button>
+          {!isVerifying && (
+            <p className="text-base text-base-content/60 mb-6 animate-pulse">
+              Redirecting you to the home page shortly...
+            </p>
+          )}
+          <button
+            onClick={() => navigate("/home")}
+            className="btn btn-primary btn-md rounded-full text-white font-bold py-2 px-4 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center mx-auto"
+          >
+            {isVerifying ? <LoadingSpinner /> : (
+              <>
+                <FaHome className="mr-2" />
+                Go to Home
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

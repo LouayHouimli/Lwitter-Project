@@ -56,6 +56,7 @@ function App() {
           throw new Error("Failed to fetch user data");
         }
         const data = await res.json();
+
         return data;
       } catch (error) {
         return null;

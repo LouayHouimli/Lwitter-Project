@@ -65,3 +65,9 @@ html {
   -webkit-background-clip: text;
   color: transparent;
 }
+
+@media (max-width: 640px) {
+  html, body {
+    overflow: hidden;
+  }
+}
