@@ -18,6 +18,8 @@ import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
 import paymentRoutes from './routes/payment.routes.js'
 import webhookRoutes from './routes/webhook.routes.js'
+import requestLogger from './middleware/requestLogger.js'
+import dbLogger from './middleware/dbLogger.js'
 
 cloudinary.config({ 
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -40,6 +42,9 @@ app.use(cors({
 }));
 app.use(cookieParser())
 
+// Add the logging middlewares
+app.use(requestLogger);
+app.use(dbLogger);
 
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
